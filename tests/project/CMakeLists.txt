@@ -1,0 +1,18 @@
+add_executable(composer_project_document_tests ProjectDocumentTests.cpp)
+target_compile_features(composer_project_document_tests PRIVATE cxx_std_20)
+target_link_libraries(composer_project_document_tests PRIVATE
+    composer::project_document Catch2::Catch2WithMain nlohmann_json::nlohmann_json)
+composer_apply_warnings(composer_project_document_tests ProjectDocumentTests.cpp)
+catch_discover_tests(composer_project_document_tests DISCOVERY_MODE PRE_TEST
+    PROPERTIES TIMEOUT 60)
+
+add_executable(composer_midi_capture_tests MidiCaptureBufferTests.cpp)
+target_compile_features(composer_midi_capture_tests PRIVATE cxx_std_20)
+target_link_libraries(composer_midi_capture_tests PRIVATE
+    composer::project_document Catch2::Catch2WithMain)
+composer_apply_warnings(composer_midi_capture_tests MidiCaptureBufferTests.cpp)
+catch_discover_tests(composer_midi_capture_tests DISCOVERY_MODE PRE_TEST
+    PROPERTIES TIMEOUT 30)
+
+composer_add_test_executable(composer_project_file_tests SOURCES ProjectFileStoreTests.cpp)
+target_link_libraries(composer_project_file_tests PRIVATE composer::project)
