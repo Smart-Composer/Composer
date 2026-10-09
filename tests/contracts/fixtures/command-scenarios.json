@@ -1,0 +1,558 @@
+{
+  "scenarios": [
+    {
+      "id": "edit_undo_redo",
+      "initial": {
+        "project_instance_id": "session-a",
+        "patch": "default",
+        "revision": 0,
+        "undo": [],
+        "redo": []
+      },
+      "steps": [
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-a",
+            "expected_revision": 0,
+            "patch": "soft_saw"
+          },
+          "expected": {
+            "result": "applied",
+            "project_instance_id": "session-a",
+            "patch": "soft_saw",
+            "revision": 1,
+            "undo": [
+              "default"
+            ],
+            "redo": []
+          }
+        },
+        {
+          "action": "undo",
+          "expected": {
+            "result": "applied",
+            "project_instance_id": "session-a",
+            "patch": "default",
+            "revision": 2,
+            "undo": [],
+            "redo": [
+              "soft_saw"
+            ]
+          }
+        },
+        {
+          "action": "redo",
+          "expected": {
+            "result": "applied",
+            "project_instance_id": "session-a",
+            "patch": "soft_saw",
+            "revision": 3,
+            "undo": [
+              "default"
+            ],
+            "redo": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "rejections_preserve_everything",
+      "initial": {
+        "project_instance_id": "session-a",
+        "patch": "default",
+        "revision": 0,
+        "undo": [],
+        "redo": []
+      },
+      "steps": [
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-a",
+            "expected_revision": 0,
+            "patch": "soft_saw"
+          },
+          "expected": {
+            "result": "applied",
+            "project_instance_id": "session-a",
+            "patch": "soft_saw",
+            "revision": 1,
+            "undo": [
+              "default"
+            ],
+            "redo": []
+          }
+        },
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-a",
+            "expected_revision": 0,
+            "patch": "upper_bounds"
+          },
+          "expected": {
+            "result": "stale_revision",
+            "project_instance_id": "session-a",
+            "patch": "soft_saw",
+            "revision": 1,
+            "undo": [
+              "default"
+            ],
+            "redo": []
+          }
+        },
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-b",
+            "expected_revision": 1,
+            "patch": "upper_bounds"
+          },
+          "expected": {
+            "result": "wrong_project",
+            "project_instance_id": "session-a",
+            "patch": "soft_saw",
+            "revision": 1,
+            "undo": [
+              "default"
+            ],
+            "redo": []
+          }
+        },
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-a",
+            "expected_revision": 1,
+            "patch": {
+              "schema_version": 1,
+              "waveform": "square",
+              "gain_db": 2,
+              "attack_seconds": 10,
+              "decay_seconds": 10,
+              "sustain_level": 1,
+              "release_seconds": 10,
+              "cutoff_hz": 20000,
+              "resonance_q": 10
+            }
+          },
+          "expected": {
+            "result": "invalid_command",
+            "project_instance_id": "session-a",
+            "patch": "soft_saw",
+            "revision": 1,
+            "undo": [
+              "default"
+            ],
+            "redo": []
+          }
+        },
+        {
+          "action": "undo",
+          "expected": {
+            "result": "applied",
+            "project_instance_id": "session-a",
+            "patch": "default",
+            "revision": 2,
+            "undo": [],
+            "redo": [
+              "soft_saw"
+            ]
+          }
+        },
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-a",
+            "expected_revision": 2,
+            "patch": {
+              "schema_version": 1,
+              "waveform": "square",
+              "gain_db": 2,
+              "attack_seconds": 10,
+              "decay_seconds": 10,
+              "sustain_level": 1,
+              "release_seconds": 10,
+              "cutoff_hz": 20000,
+              "resonance_q": 10
+            }
+          },
+          "expected": {
+            "result": "invalid_command",
+            "project_instance_id": "session-a",
+            "patch": "default",
+            "revision": 2,
+            "undo": [],
+            "redo": [
+              "soft_saw"
+            ]
+          }
+        },
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-a",
+            "expected_revision": 0,
+            "patch": "default"
+          },
+          "expected": {
+            "result": "stale_revision",
+            "project_instance_id": "session-a",
+            "patch": "default",
+            "revision": 2,
+            "undo": [],
+            "redo": [
+              "soft_saw"
+            ]
+          }
+        },
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-b",
+            "expected_revision": 2,
+            "patch": "default"
+          },
+          "expected": {
+            "result": "wrong_project",
+            "project_instance_id": "session-a",
+            "patch": "default",
+            "revision": 2,
+            "undo": [],
+            "redo": [
+              "soft_saw"
+            ]
+          }
+        },
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-a",
+            "expected_revision": 2,
+            "patch": "default"
+          },
+          "expected": {
+            "result": "no_change",
+            "project_instance_id": "session-a",
+            "patch": "default",
+            "revision": 2,
+            "undo": [],
+            "redo": [
+              "soft_saw"
+            ]
+          }
+        },
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-a",
+            "expected_revision": 2,
+            "patch": "upper_bounds"
+          },
+          "expected": {
+            "result": "applied",
+            "project_instance_id": "session-a",
+            "patch": "upper_bounds",
+            "revision": 3,
+            "undo": [
+              "default"
+            ],
+            "redo": []
+          }
+        },
+        {
+          "action": "redo",
+          "expected": {
+            "result": "no_change",
+            "project_instance_id": "session-a",
+            "patch": "upper_bounds",
+            "revision": 3,
+            "undo": [
+              "default"
+            ],
+            "redo": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "empty_history",
+      "initial": {
+        "project_instance_id": "session-a",
+        "patch": "default",
+        "revision": 0,
+        "undo": [],
+        "redo": []
+      },
+      "steps": [
+        {
+          "action": "undo",
+          "expected": {
+            "result": "no_change",
+            "project_instance_id": "session-a",
+            "patch": "default",
+            "revision": 0,
+            "undo": [],
+            "redo": []
+          }
+        },
+        {
+          "action": "redo",
+          "expected": {
+            "result": "no_change",
+            "project_instance_id": "session-a",
+            "patch": "default",
+            "revision": 0,
+            "undo": [],
+            "redo": []
+          }
+        },
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-a",
+            "expected_revision": 0,
+            "patch": "default"
+          },
+          "expected": {
+            "result": "no_change",
+            "project_instance_id": "session-a",
+            "patch": "default",
+            "revision": 0,
+            "undo": [],
+            "redo": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "reopened_project_rejects_old_instance",
+      "initial": {
+        "project_instance_id": "session-b",
+        "patch": "default",
+        "revision": 0,
+        "undo": [],
+        "redo": []
+      },
+      "steps": [
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-a",
+            "expected_revision": 0,
+            "patch": "soft_saw"
+          },
+          "expected": {
+            "result": "wrong_project",
+            "project_instance_id": "session-b",
+            "patch": "default",
+            "revision": 0,
+            "undo": [],
+            "redo": []
+          }
+        },
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-b",
+            "expected_revision": 0,
+            "patch": "soft_saw"
+          },
+          "expected": {
+            "result": "applied",
+            "project_instance_id": "session-b",
+            "patch": "soft_saw",
+            "revision": 1,
+            "undo": [
+              "default"
+            ],
+            "redo": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "revision_exhaustion",
+      "initial": {
+        "project_instance_id": "session-a",
+        "patch": "default",
+        "revision": 9007199254740990,
+        "undo": [],
+        "redo": []
+      },
+      "steps": [
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-a",
+            "expected_revision": 9007199254740990,
+            "patch": "soft_saw"
+          },
+          "expected": {
+            "result": "applied",
+            "project_instance_id": "session-a",
+            "patch": "soft_saw",
+            "revision": 9007199254740991,
+            "undo": [
+              "default"
+            ],
+            "redo": []
+          }
+        },
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-a",
+            "expected_revision": 9007199254740991,
+            "patch": "default"
+          },
+          "expected": {
+            "result": "revision_exhausted",
+            "project_instance_id": "session-a",
+            "patch": "soft_saw",
+            "revision": 9007199254740991,
+            "undo": [
+              "default"
+            ],
+            "redo": []
+          }
+        },
+        {
+          "action": "undo",
+          "expected": {
+            "result": "revision_exhausted",
+            "project_instance_id": "session-a",
+            "patch": "soft_saw",
+            "revision": 9007199254740991,
+            "undo": [
+              "default"
+            ],
+            "redo": []
+          }
+        },
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-a",
+            "expected_revision": 9007199254740991,
+            "patch": "soft_saw"
+          },
+          "expected": {
+            "result": "no_change",
+            "project_instance_id": "session-a",
+            "patch": "soft_saw",
+            "revision": 9007199254740991,
+            "undo": [
+              "default"
+            ],
+            "redo": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "exhausted_redo",
+      "initial": {
+        "project_instance_id": "session-a",
+        "patch": "default",
+        "revision": 9007199254740989,
+        "undo": [],
+        "redo": []
+      },
+      "steps": [
+        {
+          "action": "apply",
+          "command": {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-a",
+            "expected_revision": 9007199254740989,
+            "patch": "soft_saw"
+          },
+          "expected": {
+            "result": "applied",
+            "project_instance_id": "session-a",
+            "patch": "soft_saw",
+            "revision": 9007199254740990,
+            "undo": [
+              "default"
+            ],
+            "redo": []
+          }
+        },
+        {
+          "action": "undo",
+          "expected": {
+            "result": "applied",
+            "project_instance_id": "session-a",
+            "patch": "default",
+            "revision": 9007199254740991,
+            "undo": [],
+            "redo": [
+              "soft_saw"
+            ]
+          }
+        },
+        {
+          "action": "redo",
+          "expected": {
+            "project_instance_id": "session-a",
+            "patch": "default",
+            "revision": 9007199254740991,
+            "undo": [],
+            "redo": [
+              "soft_saw"
+            ],
+            "result": "revision_exhausted"
+          }
+        },
+        {
+          "action": "undo",
+          "expected": {
+            "project_instance_id": "session-a",
+            "patch": "default",
+            "revision": 9007199254740991,
+            "undo": [],
+            "redo": [
+              "soft_saw"
+            ],
+            "result": "no_change"
+          }
+        }
+      ]
+    }
+  ]
+}

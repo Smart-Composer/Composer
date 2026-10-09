@@ -1,0 +1,46 @@
+{
+  "default": {
+    "schema_version": 1,
+    "waveform": "sine",
+    "gain_db": -12,
+    "attack_seconds": 0.01,
+    "decay_seconds": 0.1,
+    "sustain_level": 0.7,
+    "release_seconds": 0.2,
+    "cutoff_hz": 8000,
+    "resonance_q": 0.7071067811865476
+  },
+  "lower_bounds": {
+    "schema_version": 1,
+    "waveform": "saw",
+    "gain_db": -60,
+    "attack_seconds": 0,
+    "decay_seconds": 0,
+    "sustain_level": 0,
+    "release_seconds": 0,
+    "cutoff_hz": 20,
+    "resonance_q": 0.1
+  },
+  "upper_bounds": {
+    "schema_version": 1,
+    "waveform": "square",
+    "gain_db": 0,
+    "attack_seconds": 10,
+    "decay_seconds": 10,
+    "sustain_level": 1,
+    "release_seconds": 10,
+    "cutoff_hz": 20000,
+    "resonance_q": 10
+  },
+  "soft_saw": {
+    "schema_version": 1,
+    "waveform": "saw",
+    "gain_db": -18,
+    "attack_seconds": 0.05,
+    "decay_seconds": 0.25,
+    "sustain_level": 0.5,
+    "release_seconds": 0.4,
+    "cutoff_hz": 2400,
+    "resonance_q": 1.2
+  }
+}

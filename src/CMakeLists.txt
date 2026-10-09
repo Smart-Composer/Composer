@@ -1,3 +1,4 @@
+add_subdirectory(contracts)
 add_subdirectory(instrument)
 add_subdirectory(engine)
 add_subdirectory(plugin)

@@ -1,0 +1,97 @@
+{
+  "cases": [
+    {
+      "id": "valid_compact",
+      "source": "{\"schema_version\":1,\"waveform\":\"sine\",\"gain_db\":-12,\"attack_seconds\":0.01,\"decay_seconds\":0.1,\"sustain_level\":0.7,\"release_seconds\":0.2,\"cutoff_hz\":8000,\"resonance_q\":0.7071067811865476}",
+      "expected": "valid",
+      "patch": "default"
+    },
+    {
+      "id": "valid_reordered",
+      "source": "{\n  \"resonance_q\": 0.7071067811865476,\n  \"cutoff_hz\": 8000,\n  \"release_seconds\": 0.2,\n  \"sustain_level\": 0.7,\n  \"decay_seconds\": 0.1,\n  \"attack_seconds\": 0.01,\n  \"gain_db\": -12,\n  \"waveform\": \"sine\",\n  \"schema_version\": 1\n}",
+      "expected": "valid",
+      "patch": "default"
+    },
+    {
+      "id": "valid_surrounding_whitespace",
+      "source": "\t\n{\"schema_version\":1,\"waveform\":\"sine\",\"gain_db\":-12,\"attack_seconds\":0.01,\"decay_seconds\":0.1,\"sustain_level\":0.7,\"release_seconds\":0.2,\"cutoff_hz\":8000,\"resonance_q\":0.7071067811865476}\r\n ",
+      "expected": "valid",
+      "patch": "default"
+    },
+    {
+      "id": "duplicate_gain_db",
+      "source": "{\"schema_version\":1,\"waveform\":\"sine\",\"gain_db\":-12,\"attack_seconds\":0.01,\"decay_seconds\":0.1,\"sustain_level\":0.7,\"release_seconds\":0.2,\"cutoff_hz\":8000,\"resonance_q\":0.7071067811865476,\"gain_db\":-24}",
+      "expected": "invalid"
+    },
+    {
+      "id": "escaped_duplicate_gain_db",
+      "source": "{\"schema_version\":1,\"waveform\":\"sine\",\"gain_db\":-12,\"attack_seconds\":0.01,\"decay_seconds\":0.1,\"sustain_level\":0.7,\"release_seconds\":0.2,\"cutoff_hz\":8000,\"resonance_q\":0.7071067811865476,\"g\\u0061in_db\":-24}",
+      "expected": "invalid"
+    },
+    {
+      "id": "overflowing_gain_db",
+      "source": "{\"schema_version\":1,\"waveform\":\"sine\",\"gain_db\":1e999,\"attack_seconds\":0.01,\"decay_seconds\":0.1,\"sustain_level\":0.7,\"release_seconds\":0.2,\"cutoff_hz\":8000,\"resonance_q\":0.7071067811865476}",
+      "expected": "invalid"
+    },
+    {
+      "id": "nan_gain_db",
+      "source": "{\"schema_version\":1,\"waveform\":\"sine\",\"gain_db\":NaN,\"attack_seconds\":0.01,\"decay_seconds\":0.1,\"sustain_level\":0.7,\"release_seconds\":0.2,\"cutoff_hz\":8000,\"resonance_q\":0.7071067811865476}",
+      "expected": "invalid"
+    },
+    {
+      "id": "infinite_gain_db",
+      "source": "{\"schema_version\":1,\"waveform\":\"sine\",\"gain_db\":Infinity,\"attack_seconds\":0.01,\"decay_seconds\":0.1,\"sustain_level\":0.7,\"release_seconds\":0.2,\"cutoff_hz\":8000,\"resonance_q\":0.7071067811865476}",
+      "expected": "invalid"
+    },
+    {
+      "id": "decimal_version_token",
+      "source": "{\"schema_version\":1.0,\"waveform\":\"sine\",\"gain_db\":-12,\"attack_seconds\":0.01,\"decay_seconds\":0.1,\"sustain_level\":0.7,\"release_seconds\":0.2,\"cutoff_hz\":8000,\"resonance_q\":0.7071067811865476}",
+      "expected": "invalid"
+    },
+    {
+      "id": "exponent_version_token",
+      "source": "{\"schema_version\":1e0,\"waveform\":\"sine\",\"gain_db\":-12,\"attack_seconds\":0.01,\"decay_seconds\":0.1,\"sustain_level\":0.7,\"release_seconds\":0.2,\"cutoff_hz\":8000,\"resonance_q\":0.7071067811865476}",
+      "expected": "invalid"
+    },
+    {
+      "id": "rounded_fraction_version_token",
+      "source": "{\"schema_version\":1.0000000000000001,\"waveform\":\"sine\",\"gain_db\":-12,\"attack_seconds\":0.01,\"decay_seconds\":0.1,\"sustain_level\":0.7,\"release_seconds\":0.2,\"cutoff_hz\":8000,\"resonance_q\":0.7071067811865476}",
+      "expected": "invalid"
+    },
+    {
+      "id": "truncated_object",
+      "source": "{\"schema_version\":1,\"waveform\":\"sine\",\"gain_db\":-12,\"attack_seconds\":0.01,\"decay_seconds\":0.1,\"sustain_level\":0.7,\"release_seconds\":0.2,\"cutoff_hz\":8000,\"resonance_q\":0.7071067811865476",
+      "expected": "invalid"
+    },
+    {
+      "id": "trailing_object",
+      "source": "{\"schema_version\":1,\"waveform\":\"sine\",\"gain_db\":-12,\"attack_seconds\":0.01,\"decay_seconds\":0.1,\"sustain_level\":0.7,\"release_seconds\":0.2,\"cutoff_hz\":8000,\"resonance_q\":0.7071067811865476}{}",
+      "expected": "invalid"
+    },
+    {
+      "id": "trailing_comma",
+      "source": "{\"schema_version\":1,\"waveform\":\"sine\",\"gain_db\":-12,\"attack_seconds\":0.01,\"decay_seconds\":0.1,\"sustain_level\":0.7,\"release_seconds\":0.2,\"cutoff_hz\":8000,\"resonance_q\":0.7071067811865476,}",
+      "expected": "invalid"
+    },
+    {
+      "id": "non_object",
+      "source": "[]",
+      "expected": "invalid"
+    },
+    {
+      "id": "null_object",
+      "source": "null",
+      "expected": "invalid"
+    },
+    {
+      "id": "empty_input",
+      "source": "",
+      "expected": "invalid"
+    },
+    {
+      "id": "nul_before_trailing_content",
+      "source": "{\"schema_version\":1,\"waveform\":\"sine\",\"gain_db\":-12,\"attack_seconds\":0.01,\"decay_seconds\":0.1,\"sustain_level\":0.7,\"release_seconds\":0.2,\"cutoff_hz\":8000,\"resonance_q\":0.7071067811865476}\u0000{}",
+      "expected": "invalid"
+    }
+  ]
+}

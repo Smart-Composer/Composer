@@ -24,3 +24,4 @@ endfunction()
 
 add_subdirectory(instrument)
 add_subdirectory(integration)
+add_subdirectory(contracts)

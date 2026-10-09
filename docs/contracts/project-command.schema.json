@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:composer:project-command:1",
+  "title": "Project command, version 1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "type",
+    "project_instance_id",
+    "expected_revision",
+    "patch"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "type": {
+      "type": "string",
+      "const": "replace_instrument_patch"
+    },
+    "project_instance_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9_-]{1,128}(?![\\s\\S])"
+    },
+    "expected_revision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "patch": {
+      "$ref": "urn:composer:instrument-patch:1"
+    }
+  }
+}
