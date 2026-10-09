@@ -127,6 +127,14 @@ Result<ProjectPatchSession> ProjectPatchSession::create(
     return ProjectPatchSession({std::move(freshInstanceId), initialRevision, initialPatch});
 }
 
+Result<EditOutcome> ProjectPatchSession::advanceContext()
+{
+    if (state.revision == maximumProjectRevision)
+        return exhaustedRevision();
+    ++state.revision;
+    return EditOutcome::applied;
+}
+
 Result<EditOutcome> ProjectPatchSession::apply(const ProjectCommand& command)
 {
     if (auto error = validateCommand(command))

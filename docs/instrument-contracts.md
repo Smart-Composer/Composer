@@ -82,6 +82,33 @@ current revision. Empty-history operations are no-ops, including at the maximum
 revision. A worker never receives authority to rewind the counter or replay a
 command against another instance.
 
+## Other project context changes
+
+`ProjectPatchSession::advanceContext()` lets the owning editing thread commit an
+effective non-patch change, such as a completed recording, using the same project
+revision. It increments that revision once and returns `applied`, preserving the
+instance token, patch, undo and redo. At the revision limit it fails without
+mutation. This trusted application method has no serialized command or payload;
+the caller identifies no-ops before calling it. It is not a worker or audio
+callback entry point.
+
+Prepare and validate the replacement, allocate its storage and preserve any
+previous performance before advancing. Recheck that prepared work belongs to the
+active instance and revision. Then call `advanceContext()` and install the prepared
+state with a proven nonthrowing, allocation-free swap in the same editing-thread
+transaction, without yielding or notifying observers between these steps. An
+error or exception from the call leaves the session unchanged; leave the active
+project unchanged too. The method cannot roll back later caller work, so file
+operations, engine preparation and other potentially failing work must precede it.
+
+Advance only for an effective accepted context change, not for arming, transport
+controls, monitoring, cancelled or rejected capture, saving or failed saves. A
+previously prepared patch command becomes stale after the change even when its
+patch equals the current patch. Undo and redo remain patch-only and preserve the
+performance; label those controls accordingly. Take preservation and any recording
+history remain the application's responsibility. Reopening still creates a fresh
+instance at revision zero rather than advancing the previous session.
+
 ## Diagnostics
 
 Error `code` and `field` identify the failure; exact English message wording is

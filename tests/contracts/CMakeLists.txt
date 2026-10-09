@@ -1,5 +1,6 @@
 set(contract_test_sources
     ContractsTests.cpp
+    ContextRevisionTests.cpp
     CodecHardeningTests.cpp
     ContractDiagnosticsTests.cpp)
 add_executable(composer_contracts_tests ${contract_test_sources})
