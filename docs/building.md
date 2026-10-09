@@ -12,6 +12,8 @@
 - PowerShell 7 (`pwsh`), or Windows PowerShell 5.1.
 - Network access for the first configure, which downloads about 55 MB of pinned sources. See
   [dependencies.md](dependencies.md).
+- A short checkout path, such as `C:\src\Composer`. The deepest build outputs sit about 180
+  characters below the checkout, and the MSVC tools fail on paths longer than 260 characters.
 
 ## Build and test
 
@@ -61,7 +63,10 @@ come. The build never installs the plugin. To try it in another host, copy the w
 
 ## Tests
 
-CTest runs three groups:
+CTest runs four groups:
+
+- **Contracts**: the versioned instrument patch and project command formats, independent of
+  JUCE. They decode, validate and re-encode the shared fixtures in `tests/contracts/fixtures`.
 
 - **Instrument**: the shared instrument processor's buses, MIDI handling and sample-rate
   changes, compiled into a test executable. Output buffers start filled with NaN, so a sample
@@ -77,11 +82,21 @@ In Debug builds, any failed JUCE or Tracktion Engine assertion, including a leak
 shutdown, fails the test executable that raised it. Tests write only to temporary directories,
 which they remove.
 
+The hosted workflow also checks the contract fixtures against the published JSON schemas in
+`docs/contracts`, independently of the native decoder. To run that check locally with Python
+3.12:
+
+```powershell
+python -m pip install -r tests/contracts/requirements.txt
+python tests/contracts/test_fixture_consistency.py
+```
+
 ## Source layout
 
 | Path | Contents |
 |---|---|
 | `include/composer/` | Public headers of Composer's libraries |
+| `src/contracts/` | The versioned patch and command contracts, independent of JUCE |
 | `src/instrument/` | The instrument shared by the application and the plugin |
 | `src/engine/` | The JUCE and Tracktion Engine library behind the application, and engine setup |
 | `src/plugin/` | The VST3 wrapper |
@@ -91,4 +106,5 @@ which they remove.
 | `scripts/` | The verification entry point used locally and in continuous integration |
 
 Continuous integration runs the same script on GitHub's `windows-2025-vs2026` image, in Release
-and Debug, for every pull request, merge-queue entry and push to `main`.
+and Debug, for every pull request, merge-queue entry and push to `main`; the Release run also
+performs the contract fixture check.
