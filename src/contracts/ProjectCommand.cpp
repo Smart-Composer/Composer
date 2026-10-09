@@ -2,6 +2,7 @@
 #include "JsonContract.h"
 
 #include <algorithm>
+#include <new>
 #include <utility>
 
 namespace composer::contracts
@@ -22,6 +23,12 @@ ContractError invalidCommand(std::string field, std::string message)
     return {ErrorCode::invalidCommand, std::move(field), std::move(message)};
 }
 
+ContractError nestedPatchError(const ContractError& error)
+{
+    return {error.code == ErrorCode::unsupportedVersion ? error.code : ErrorCode::invalidCommand,
+            error.field.empty() ? "patch" : "patch." + error.field, error.message};
+}
+
 ContractError exhaustedRevision()
 {
     return {ErrorCode::revisionExhausted, "expected_revision", "Project revision cannot advance further"};
@@ -35,58 +42,80 @@ std::optional<ContractError> validateCommand(const ProjectCommand& command)
     if (command.expectedRevision > maximumProjectRevision)
         return invalidCommand("expected_revision", "Project revision is outside the supported range");
     if (auto error = validatePatch(command.patch))
-        return invalidCommand("patch." + error->field, error->message);
+        return nestedPatchError(*error);
     return std::nullopt;
 }
 
 Result<ProjectCommand> decodeCommand(std::string_view source)
 {
-    auto parsed = detail::parseJson(source);
-    if (const auto* error = std::get_if<ContractError>(&parsed))
-        return *error;
-    const auto& value = std::get<detail::Json>(parsed);
+    auto allocationStage = ErrorCode::invalidJson;
     try
     {
-        if (auto error = detail::checkVersion(value, commandSchemaVersion, ErrorCode::invalidCommand))
+        auto parsed = detail::parseJson(source);
+        if (const auto* error = std::get_if<ContractError>(&parsed))
             return *error;
-        if (value.size() != 5 || !value.contains("type") || value["type"] != "replace_instrument_patch"
-            || !value.contains("project_instance_id") || !value["project_instance_id"].is_string()
-            || !value.contains("expected_revision")
-            || !detail::isUnsignedInteger(value["expected_revision"], maximumProjectRevision)
-            || !value.contains("patch"))
-            return invalidCommand({}, "Expected a complete patch-replacement command");
-        auto patch = detail::patchFromJson(value["patch"]);
-        if (const auto* error = std::get_if<ContractError>(&patch))
-            return invalidCommand("patch." + error->field, error->message);
-        ProjectCommand command{value["project_instance_id"].get<std::string>(),
-                               value["expected_revision"].get<std::uint64_t>(),
-                               std::get<InstrumentPatch>(patch)};
-        if (auto error = validateCommand(command))
-            return *error;
-        return command;
+        allocationStage = ErrorCode::invalidCommand;
+        const auto& value = std::get<detail::Json>(parsed);
+        try
+        {
+            if (auto error = detail::checkVersion(value, commandSchemaVersion, ErrorCode::invalidCommand))
+                return *error;
+            for (const auto* field : {"type", "project_instance_id", "expected_revision", "patch"})
+                if (!value.contains(field))
+                    return invalidCommand(field, "Missing command field");
+            if (value.size() != 5)
+                return invalidCommand({}, "Expected only the declared command fields");
+            if (value["type"] != "replace_instrument_patch")
+                return invalidCommand("type", "Expected a patch-replacement command type");
+            if (!value["project_instance_id"].is_string()
+                || !validInstanceId(value["project_instance_id"].get_ref<const std::string&>()))
+                return invalidCommand("project_instance_id", "Expected an ASCII identifier of 1 to 128 letters, digits, hyphens or underscores");
+            if (!detail::isUnsignedInteger(value["expected_revision"], maximumProjectRevision))
+                return invalidCommand("expected_revision", "Expected an integer project revision inside the supported range");
+            auto patch = detail::patchFromJson(value["patch"]);
+            if (const auto* error = std::get_if<ContractError>(&patch))
+                return nestedPatchError(*error);
+            ProjectCommand command{value["project_instance_id"].get<std::string>(),
+                                   value["expected_revision"].get<std::uint64_t>(),
+                                   std::get<InstrumentPatch>(patch)};
+            if (auto error = validateCommand(command))
+                return *error;
+            return command;
+        }
+        catch (const detail::Json::exception&)
+        {
+            return invalidCommand({}, "Invalid command value");
+        }
     }
-    catch (const detail::Json::exception&)
+    catch (const std::bad_alloc&)
     {
-        return invalidCommand({}, "Invalid command value");
+        return ContractError{allocationStage, {}, {}};
     }
 }
 
 Result<std::string> encodeCommand(const ProjectCommand& command)
 {
-    if (auto error = validateCommand(command))
-        return *error;
     try
     {
-        const detail::Json value = {
-            {"schema_version", commandSchemaVersion}, {"type", "replace_instrument_patch"},
-            {"project_instance_id", command.projectInstanceId}, {"expected_revision", command.expectedRevision},
-            {"patch", detail::patchToJson(command.patch)}
-        };
-        return value.dump();
+        if (auto error = validateCommand(command))
+            return *error;
+        try
+        {
+            const detail::Json value = {
+                {"schema_version", commandSchemaVersion}, {"type", "replace_instrument_patch"},
+                {"project_instance_id", command.projectInstanceId}, {"expected_revision", command.expectedRevision},
+                {"patch", detail::patchToJson(command.patch)}
+            };
+            return value.dump();
+        }
+        catch (const detail::Json::exception&)
+        {
+            return invalidCommand({}, "Command serialization failed");
+        }
     }
-    catch (const detail::Json::exception&)
+    catch (const std::bad_alloc&)
     {
-        return invalidCommand({}, "Command serialization failed");
+        return ContractError{ErrorCode::invalidCommand, {}, {}};
     }
 }
 

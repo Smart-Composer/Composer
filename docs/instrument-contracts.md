@@ -82,6 +82,37 @@ current revision. Empty-history operations are no-ops, including at the maximum
 revision. A worker never receives authority to rewind the counter or replay a
 command against another instance.
 
+## Diagnostics
+
+Error `code` and `field` identify the failure; exact English message wording is
+not part of the contract. Messages are nonempty except for the allocation fallback
+described below. Structural validation proceeds in this order: parse JSON, require
+an object, check its version, require known members, reject extra members, then
+validate member values. Missing patch members are checked in descriptor order;
+command members are checked in `type`, `project_instance_id`, `expected_revision`,
+`patch` order. No additional priority is promised between multiple invalid
+parameter values.
+
+| Failure | Code | Field |
+| --- | --- | --- |
+| Malformed, duplicate-member, oversized, or excessively nested JSON; leading BOM | `invalidJson` | empty |
+| Non-object root | `invalidPatch` or `invalidCommand` | empty |
+| Missing or invalid version token | enclosing invalid code | `schema_version` |
+| Representable nonnegative integer version other than 1 | `unsupportedVersion` | `schema_version` |
+| Missing required member | enclosing invalid code | missing member ID |
+| Extra member on an otherwise complete object | enclosing invalid code | empty |
+| Invalid known member type or value | enclosing invalid code | member ID |
+
+Version recognition covers unsigned 64-bit integers before comparison, including
+values above the 32-bit range. Negative, floating, exponent, boolean, string, and
+null version tokens are invalid. Integers beyond the unsigned 64-bit range that
+the parser represents as floating point are also invalid. An unsupported version
+takes priority over version-1 member requirements.
+
+A command's nested patch errors use `patch.<field>`, or exactly `patch` when the
+patch error has no field. They use `invalidCommand`, while an unsupported nested
+patch version preserves `unsupportedVersion` with field `patch.schema_version`.
+
 ## Native boundary
 
 The shared value and validation interfaces must be independent of the wrappers.
@@ -128,3 +159,23 @@ python -B tests/contracts/test_fixture_consistency.py --root . -v
 This command checks fixture consistency, including the decoder's integer-token
 rule and expected history transitions. It is not native validation or a substitute
 for the native build and focused tests.
+
+## Input and allocation bounds
+
+Patch and command JSON input is limited to 65,536 bytes, including whitespace.
+Larger input and a leading UTF-8 byte-order mark are rejected as `invalidJson`.
+Parsing permits at most two nested containers: a root command object and its
+flat patch object. A third container or a parser callback depth above two is
+rejected before schema validation. These bounds do not change the wire schema.
+
+The four encode/decode functions catch recoverable `std::bad_alloc` failures
+across parsing, validation, serialization, and construction or copying of error
+diagnostics. The fallback has empty `field` and `message` strings. Its code is
+`invalidJson` during parsing, or `invalidPatch`/`invalidCommand` at the later
+codec stage. Callers must handle an error even when its diagnostic strings are
+empty. The standalone validation and editing-session methods have no added
+allocation-failure guarantee.
+
+These catches provide best-effort recovery, not general memory-exhaustion
+containment. The pinned JSON library allocates during DOM destruction; failure
+of that allocation can terminate the process before a codec catch can run.

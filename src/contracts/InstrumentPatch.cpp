@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
+#include <new>
 #include <set>
 #include <stdexcept>
 #include <vector>
@@ -37,14 +39,21 @@ namespace detail
 {
 Result<Json> parseJson(std::string_view source)
 {
+    if (source.size() > 64 * 1024)
+        return ContractError{ErrorCode::invalidJson, {}, "JSON input exceeds 64 KiB"};
+    if (source.starts_with("\xef\xbb\xbf"))
+        return ContractError{ErrorCode::invalidJson, {}, "Leading UTF-8 BOM is not valid contract JSON"};
     // The JSON lexer treats a literal NUL as end-of-input, even inside an iterator range.
     if (source.find('\0') != std::string_view::npos)
         return ContractError{ErrorCode::invalidJson, {}, "Literal NUL is not valid JSON"};
     try
     {
         std::vector<std::set<std::string>> members;
-        const auto callback = [&](int, Json::parse_event_t event, Json& value)
+        const auto callback = [&](int depth, Json::parse_event_t event, Json& value)
         {
+            if (depth > 2 || (depth >= 2 && (event == Json::parse_event_t::object_start
+                                           || event == Json::parse_event_t::array_start)))
+                throw std::invalid_argument("Excessive JSON nesting");
             if (event == Json::parse_event_t::object_start)
                 members.emplace_back();
             else if (event == Json::parse_event_t::key)
@@ -57,6 +66,10 @@ Result<Json> parseJson(std::string_view source)
             return true;
         };
         return Json::parse(source.begin(), source.end(), callback);
+    }
+    catch (const std::bad_alloc&)
+    {
+        throw;
     }
     catch (const std::exception&)
     {
@@ -78,10 +91,12 @@ bool isUnsignedInteger(const Json& value, std::uint64_t maximum)
 
 std::optional<ContractError> checkVersion(const Json& value, std::uint32_t version, ErrorCode invalidCode)
 {
-    if (!value.is_object() || !value.contains("schema_version")
-        || !isUnsignedInteger(value["schema_version"], UINT32_MAX))
+    if (!value.is_object())
+        return ContractError{invalidCode, {}, "Expected an object"};
+    if (!value.contains("schema_version")
+        || !isUnsignedInteger(value["schema_version"], std::numeric_limits<std::uint64_t>::max()))
         return ContractError{invalidCode, "schema_version", "Expected an integer schema version"};
-    if (value["schema_version"].get<std::uint32_t>() != version)
+    if (value["schema_version"].get<std::uint64_t>() != version)
         return ContractError{ErrorCode::unsupportedVersion, "schema_version", "Unsupported schema version"};
     return std::nullopt;
 }
@@ -90,6 +105,9 @@ Result<InstrumentPatch> patchFromJson(const Json& value)
 {
     if (auto error = checkVersion(value, patchSchemaVersion, ErrorCode::invalidPatch))
         return *error;
+    for (const auto& descriptor : parameterDescriptors)
+        if (!value.contains(std::string(descriptor.id)))
+            return invalidPatch(std::string(descriptor.id), "Missing patch parameter");
     if (value.size() != parameterDescriptors.size() + 1)
         return invalidPatch({}, "Expected exactly the version and declared patch parameters");
 
@@ -97,8 +115,6 @@ Result<InstrumentPatch> patchFromJson(const Json& value)
     for (const auto& descriptor : parameterDescriptors)
     {
         const auto key = std::string(descriptor.id);
-        if (!value.contains(key))
-            return invalidPatch(key, "Missing patch parameter");
         if (descriptor.kind == ParameterKind::choice)
         {
             if (!value[key].is_string())
@@ -140,30 +156,46 @@ Json patchToJson(const InstrumentPatch& patch)
 
 Result<InstrumentPatch> decodePatch(std::string_view source)
 {
-    auto parsed = detail::parseJson(source);
-    if (const auto* error = std::get_if<ContractError>(&parsed))
-        return *error;
+    auto allocationStage = ErrorCode::invalidJson;
     try
     {
-        return detail::patchFromJson(std::get<detail::Json>(parsed));
+        auto parsed = detail::parseJson(source);
+        if (const auto* error = std::get_if<ContractError>(&parsed))
+            return *error;
+        allocationStage = ErrorCode::invalidPatch;
+        try
+        {
+            return detail::patchFromJson(std::get<detail::Json>(parsed));
+        }
+        catch (const detail::Json::exception&)
+        {
+            return invalidPatch({}, "Invalid patch value");
+        }
     }
-    catch (const detail::Json::exception&)
+    catch (const std::bad_alloc&)
     {
-        return invalidPatch({}, "Invalid patch value");
+        return ContractError{allocationStage, {}, {}};
     }
 }
 
 Result<std::string> encodePatch(const InstrumentPatch& patch)
 {
-    if (auto error = validatePatch(patch))
-        return *error;
     try
     {
-        return detail::patchToJson(patch).dump();
+        if (auto error = validatePatch(patch))
+            return *error;
+        try
+        {
+            return detail::patchToJson(patch).dump();
+        }
+        catch (const detail::Json::exception&)
+        {
+            return invalidPatch({}, "Patch serialization failed");
+        }
     }
-    catch (const detail::Json::exception&)
+    catch (const std::bad_alloc&)
     {
-        return invalidPatch({}, "Patch serialization failed");
+        return ContractError{ErrorCode::invalidPatch, {}, {}};
     }
 }
 }

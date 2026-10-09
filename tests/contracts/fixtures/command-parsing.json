@@ -44,6 +44,11 @@
       "id": "nul_before_trailing_content",
       "source": "{\"schema_version\":1,\"type\":\"replace_instrument_patch\",\"project_instance_id\":\"session-a\",\"expected_revision\":0,\"patch\":{\"schema_version\":1,\"waveform\":\"saw\",\"gain_db\":-18,\"attack_seconds\":0.05,\"decay_seconds\":0.25,\"sustain_level\":0.5,\"release_seconds\":0.4,\"cutoff_hz\":2400,\"resonance_q\":1.2}}\u0000{}",
       "expected": "invalid"
+    },
+    {
+      "id": "leading_utf8_bom",
+      "source": "\ufeff{\"schema_version\":1,\"type\":\"replace_instrument_patch\",\"project_instance_id\":\"session-a\",\"expected_revision\":0,\"patch\":{\"schema_version\":1,\"waveform\":\"saw\",\"gain_db\":-18,\"attack_seconds\":0.05,\"decay_seconds\":0.25,\"sustain_level\":0.5,\"release_seconds\":0.4,\"cutoff_hz\":2400,\"resonance_q\":1.2}}",
+      "expected": "invalid"
     }
   ]
 }

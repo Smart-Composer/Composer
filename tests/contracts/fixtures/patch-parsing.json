@@ -92,6 +92,11 @@
       "id": "nul_before_trailing_content",
       "source": "{\"schema_version\":1,\"waveform\":\"sine\",\"gain_db\":-12,\"attack_seconds\":0.01,\"decay_seconds\":0.1,\"sustain_level\":0.7,\"release_seconds\":0.2,\"cutoff_hz\":8000,\"resonance_q\":0.7071067811865476}\u0000{}",
       "expected": "invalid"
+    },
+    {
+      "id": "leading_utf8_bom",
+      "source": "\ufeff{\"schema_version\":1,\"waveform\":\"sine\",\"gain_db\":-12,\"attack_seconds\":0.01,\"decay_seconds\":0.1,\"sustain_level\":0.7,\"release_seconds\":0.2,\"cutoff_hz\":8000,\"resonance_q\":0.7071067811865476}",
+      "expected": "invalid"
     }
   ]
 }

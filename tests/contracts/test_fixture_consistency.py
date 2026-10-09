@@ -13,6 +13,7 @@ from referencing import Registry, Resource
 
 ROOT = Path(__file__).resolve().parents[2]
 MAX_REVISION = 9007199254740991
+MAX_CONTRACT_JSON_BYTES = 65536
 
 
 def strict_json(source):
@@ -49,17 +50,26 @@ def load(path):
 
 
 def contract_json(source):
-    value = strict_json(source)
+    if len(source.encode("utf-8")) > MAX_CONTRACT_JSON_BYTES:
+        raise ValueError("contract JSON exceeds 65536 UTF-8 bytes")
+    try:
+        value = strict_json(source)
+    except RecursionError as error:
+        raise ValueError("excessive JSON nesting") from error
 
-    def check_integer_tokens(node):
+    def check_integer_tokens(node, container_depth=0):
+        if isinstance(node, (dict, list)):
+            container_depth += 1
+            if container_depth > 2:
+                raise ValueError("excessive JSON nesting")
         if isinstance(node, dict):
             for field, child in node.items():
                 if field in {"schema_version", "expected_revision"} and type(child) is not int:
                     raise ValueError("version and revision require integer JSON tokens")
-                check_integer_tokens(child)
+                check_integer_tokens(child, container_depth)
         elif isinstance(node, list):
             for child in node:
-                check_integer_tokens(child)
+                check_integer_tokens(child, container_depth)
 
     check_integer_tokens(value)
     return value
@@ -240,6 +250,36 @@ class FixtureConsistencyTests(unittest.TestCase):
                     else:
                         self.assertEqual(after, state, "rejection and no-op preserve all state")
                     state = after
+
+    def test_contract_json_resource_boundaries(self):
+        patch = self.patches["default"]
+        command = {
+            "schema_version": 1,
+            "type": "replace_instrument_patch",
+            "project_instance_id": "session-a",
+            "expected_revision": 0,
+            "patch": patch,
+        }
+        for value in (patch, command):
+            with self.subTest(value=value):
+                source = json.dumps(value, separators=(",", ":"))
+                source += " " * (MAX_CONTRACT_JSON_BYTES - len(source.encode("utf-8")))
+                self.assertEqual(contract_json(source), value)
+                with self.assertRaises(ValueError):
+                    contract_json(source + " ")
+
+        unicode_source = '"' + "\u00e9" * 32767 + '"'
+        self.assertEqual(len(unicode_source.encode("utf-8")), MAX_CONTRACT_JSON_BYTES)
+        self.assertEqual(contract_json(unicode_source), "\u00e9" * 32767)
+        with self.assertRaises(ValueError):
+            contract_json(unicode_source[:-1] + 'x"')
+
+        self.assertEqual(contract_json("[[0]]"), [[0]])
+        for source in ("[[[]]]", '{"patch":{"gain_db":[]}}',
+                       '{"patch":{"gain_db":{}}}', "[" * 2000 + "0" + "]" * 2000):
+            with self.subTest(source=source), self.assertRaisesRegex(ValueError, "nesting"):
+                contract_json(source)
+        self.assertEqual(strict_json("[[[]]]"), [[[]]])
 
 
 if __name__ == "__main__":
