@@ -16,3 +16,23 @@ catch_discover_tests(composer_midi_capture_tests DISCOVERY_MODE PRE_TEST
 
 composer_add_test_executable(composer_project_file_tests SOURCES ProjectFileStoreTests.cpp)
 target_link_libraries(composer_project_file_tests PRIVATE composer::project)
+
+add_executable(composer_project_session_tests ProjectSessionTests.cpp)
+target_compile_features(composer_project_session_tests PRIVATE cxx_std_20)
+target_link_libraries(composer_project_session_tests PRIVATE
+    composer::project_document Catch2::Catch2WithMain)
+composer_apply_warnings(composer_project_session_tests ProjectSessionTests.cpp)
+catch_discover_tests(composer_project_session_tests DISCOVERY_MODE PRE_TEST
+    PROPERTIES TIMEOUT 30)
+
+# Keep replacement allocation functions out of the ordinary and JUCE test processes.
+add_executable(composer_project_session_allocation_tests ProjectSessionAllocationTests.cpp)
+target_compile_features(composer_project_session_allocation_tests PRIVATE cxx_std_20)
+target_link_libraries(composer_project_session_allocation_tests PRIVATE
+    composer::project_document Catch2::Catch2WithMain)
+composer_apply_warnings(composer_project_session_allocation_tests ProjectSessionAllocationTests.cpp)
+catch_discover_tests(composer_project_session_allocation_tests DISCOVERY_MODE PRE_TEST
+    PROPERTIES TIMEOUT 10)
+
+composer_add_test_executable(composer_project_session_file_tests SOURCES ProjectSessionFileTests.cpp)
+target_link_libraries(composer_project_session_file_tests PRIVATE composer::project)
