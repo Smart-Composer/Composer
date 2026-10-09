@@ -1,0 +1,644 @@
+{
+  "cases": [
+    {
+      "id": "default",
+      "base": "default",
+      "changes": {},
+      "remove": [],
+      "expected": "valid"
+    },
+    {
+      "id": "lower_bounds",
+      "base": "lower_bounds",
+      "changes": {},
+      "remove": [],
+      "expected": "valid"
+    },
+    {
+      "id": "upper_bounds",
+      "base": "upper_bounds",
+      "changes": {},
+      "remove": [],
+      "expected": "valid"
+    },
+    {
+      "id": "soft_saw",
+      "base": "soft_saw",
+      "changes": {},
+      "remove": [],
+      "expected": "valid"
+    },
+    {
+      "id": "negative_zero_gain_db",
+      "base": "default",
+      "changes": {
+        "gain_db": -0.0
+      },
+      "remove": [],
+      "expected": "valid"
+    },
+    {
+      "id": "old_version",
+      "base": "default",
+      "changes": {
+        "schema_version": 0
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "future_version",
+      "base": "default",
+      "changes": {
+        "schema_version": 2
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "fractional_version",
+      "base": "default",
+      "changes": {
+        "schema_version": 1.5
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "boolean_version",
+      "base": "default",
+      "changes": {
+        "schema_version": true
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "string_version",
+      "base": "default",
+      "changes": {
+        "schema_version": "1"
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "missing_schema_version",
+      "base": "default",
+      "changes": {},
+      "remove": [
+        "schema_version"
+      ],
+      "expected": "invalid"
+    },
+    {
+      "id": "missing_waveform",
+      "base": "default",
+      "changes": {},
+      "remove": [
+        "waveform"
+      ],
+      "expected": "invalid"
+    },
+    {
+      "id": "missing_gain_db",
+      "base": "default",
+      "changes": {},
+      "remove": [
+        "gain_db"
+      ],
+      "expected": "invalid"
+    },
+    {
+      "id": "missing_attack_seconds",
+      "base": "default",
+      "changes": {},
+      "remove": [
+        "attack_seconds"
+      ],
+      "expected": "invalid"
+    },
+    {
+      "id": "missing_decay_seconds",
+      "base": "default",
+      "changes": {},
+      "remove": [
+        "decay_seconds"
+      ],
+      "expected": "invalid"
+    },
+    {
+      "id": "missing_sustain_level",
+      "base": "default",
+      "changes": {},
+      "remove": [
+        "sustain_level"
+      ],
+      "expected": "invalid"
+    },
+    {
+      "id": "missing_release_seconds",
+      "base": "default",
+      "changes": {},
+      "remove": [
+        "release_seconds"
+      ],
+      "expected": "invalid"
+    },
+    {
+      "id": "missing_cutoff_hz",
+      "base": "default",
+      "changes": {},
+      "remove": [
+        "cutoff_hz"
+      ],
+      "expected": "invalid"
+    },
+    {
+      "id": "unknown_waveform",
+      "base": "default",
+      "changes": {
+        "waveform": "triangle"
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "waveform_case",
+      "base": "default",
+      "changes": {
+        "waveform": "Sine"
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "numeric_waveform",
+      "base": "default",
+      "changes": {
+        "waveform": 0
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "unknown_field",
+      "base": "default",
+      "changes": {
+        "resonance": 0.5
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "gain_db_below_minimum",
+      "base": "default",
+      "changes": {
+        "gain_db": -60.001
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "gain_db_above_maximum",
+      "base": "default",
+      "changes": {
+        "gain_db": 0.001
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "gain_db_boolean",
+      "base": "default",
+      "changes": {
+        "gain_db": true
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "gain_db_string",
+      "base": "default",
+      "changes": {
+        "gain_db": "0.5"
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "gain_db_null",
+      "base": "default",
+      "changes": {
+        "gain_db": null
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "gain_db_array",
+      "base": "default",
+      "changes": {
+        "gain_db": []
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "gain_db_object",
+      "base": "default",
+      "changes": {
+        "gain_db": {}
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "attack_seconds_below_minimum",
+      "base": "default",
+      "changes": {
+        "attack_seconds": -0.001
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "attack_seconds_above_maximum",
+      "base": "default",
+      "changes": {
+        "attack_seconds": 10.001
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "attack_seconds_boolean",
+      "base": "default",
+      "changes": {
+        "attack_seconds": true
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "attack_seconds_string",
+      "base": "default",
+      "changes": {
+        "attack_seconds": "0.5"
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "attack_seconds_null",
+      "base": "default",
+      "changes": {
+        "attack_seconds": null
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "attack_seconds_array",
+      "base": "default",
+      "changes": {
+        "attack_seconds": []
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "attack_seconds_object",
+      "base": "default",
+      "changes": {
+        "attack_seconds": {}
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "decay_seconds_below_minimum",
+      "base": "default",
+      "changes": {
+        "decay_seconds": -0.001
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "decay_seconds_above_maximum",
+      "base": "default",
+      "changes": {
+        "decay_seconds": 10.001
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "decay_seconds_boolean",
+      "base": "default",
+      "changes": {
+        "decay_seconds": true
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "decay_seconds_string",
+      "base": "default",
+      "changes": {
+        "decay_seconds": "0.5"
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "decay_seconds_null",
+      "base": "default",
+      "changes": {
+        "decay_seconds": null
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "decay_seconds_array",
+      "base": "default",
+      "changes": {
+        "decay_seconds": []
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "decay_seconds_object",
+      "base": "default",
+      "changes": {
+        "decay_seconds": {}
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "sustain_level_below_minimum",
+      "base": "default",
+      "changes": {
+        "sustain_level": -0.001
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "sustain_level_above_maximum",
+      "base": "default",
+      "changes": {
+        "sustain_level": 1.001
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "sustain_level_boolean",
+      "base": "default",
+      "changes": {
+        "sustain_level": true
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "sustain_level_string",
+      "base": "default",
+      "changes": {
+        "sustain_level": "0.5"
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "sustain_level_null",
+      "base": "default",
+      "changes": {
+        "sustain_level": null
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "sustain_level_array",
+      "base": "default",
+      "changes": {
+        "sustain_level": []
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "sustain_level_object",
+      "base": "default",
+      "changes": {
+        "sustain_level": {}
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "release_seconds_below_minimum",
+      "base": "default",
+      "changes": {
+        "release_seconds": -0.001
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "release_seconds_above_maximum",
+      "base": "default",
+      "changes": {
+        "release_seconds": 10.001
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "release_seconds_boolean",
+      "base": "default",
+      "changes": {
+        "release_seconds": true
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "release_seconds_string",
+      "base": "default",
+      "changes": {
+        "release_seconds": "0.5"
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "release_seconds_null",
+      "base": "default",
+      "changes": {
+        "release_seconds": null
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "release_seconds_array",
+      "base": "default",
+      "changes": {
+        "release_seconds": []
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "release_seconds_object",
+      "base": "default",
+      "changes": {
+        "release_seconds": {}
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "cutoff_hz_below_minimum",
+      "base": "default",
+      "changes": {
+        "cutoff_hz": 19.999
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "cutoff_hz_above_maximum",
+      "base": "default",
+      "changes": {
+        "cutoff_hz": 20000.001
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "cutoff_hz_boolean",
+      "base": "default",
+      "changes": {
+        "cutoff_hz": true
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "cutoff_hz_string",
+      "base": "default",
+      "changes": {
+        "cutoff_hz": "0.5"
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "cutoff_hz_null",
+      "base": "default",
+      "changes": {
+        "cutoff_hz": null
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "cutoff_hz_array",
+      "base": "default",
+      "changes": {
+        "cutoff_hz": []
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "cutoff_hz_object",
+      "base": "default",
+      "changes": {
+        "cutoff_hz": {}
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "missing_resonance_q",
+      "base": "default",
+      "changes": {},
+      "remove": [
+        "resonance_q"
+      ],
+      "expected": "invalid"
+    },
+    {
+      "id": "resonance_q_below_minimum",
+      "base": "default",
+      "changes": {
+        "resonance_q": 0.099
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "resonance_q_above_maximum",
+      "base": "default",
+      "changes": {
+        "resonance_q": 10.001
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "resonance_q_boolean",
+      "base": "default",
+      "changes": {
+        "resonance_q": true
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "resonance_q_string",
+      "base": "default",
+      "changes": {
+        "resonance_q": "0.5"
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "resonance_q_null",
+      "base": "default",
+      "changes": {
+        "resonance_q": null
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "resonance_q_array",
+      "base": "default",
+      "changes": {
+        "resonance_q": []
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "resonance_q_object",
+      "base": "default",
+      "changes": {
+        "resonance_q": {}
+      },
+      "remove": [],
+      "expected": "invalid"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:composer:instrument-patch:1",
+  "title": "Instrument patch, version 1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "waveform",
+    "gain_db",
+    "attack_seconds",
+    "decay_seconds",
+    "sustain_level",
+    "release_seconds",
+    "cutoff_hz",
+    "resonance_q"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "waveform": {
+      "type": "string",
+      "enum": [
+        "sine",
+        "saw",
+        "square"
+      ]
+    },
+    "gain_db": {
+      "type": "number",
+      "minimum": -60,
+      "maximum": 0
+    },
+    "attack_seconds": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "decay_seconds": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "sustain_level": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "release_seconds": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "cutoff_hz": {
+      "type": "number",
+      "minimum": 20,
+      "maximum": 20000
+    },
+    "resonance_q": {
+      "type": "number",
+      "minimum": 0.1,
+      "maximum": 10
+    }
+  }
+}

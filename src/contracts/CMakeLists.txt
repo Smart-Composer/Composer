@@ -1,0 +1,6 @@
+add_library(composer_contracts STATIC InstrumentPatch.cpp ProjectCommand.cpp)
+add_library(composer::contracts ALIAS composer_contracts)
+target_compile_features(composer_contracts PUBLIC cxx_std_20)
+target_include_directories(composer_contracts PUBLIC "${PROJECT_SOURCE_DIR}/include")
+target_link_libraries(composer_contracts PRIVATE nlohmann_json::nlohmann_json)
+composer_apply_warnings(composer_contracts InstrumentPatch.cpp ProjectCommand.cpp)

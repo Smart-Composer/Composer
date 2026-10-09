@@ -1,0 +1,49 @@
+{
+  "cases": [
+    {
+      "id": "decimal_revision_token",
+      "source": "{\"schema_version\":1,\"type\":\"replace_instrument_patch\",\"project_instance_id\":\"session-a\",\"expected_revision\":0.0,\"patch\":{\"schema_version\":1,\"waveform\":\"saw\",\"gain_db\":-18,\"attack_seconds\":0.05,\"decay_seconds\":0.25,\"sustain_level\":0.5,\"release_seconds\":0.4,\"cutoff_hz\":2400,\"resonance_q\":1.2}}",
+      "expected": "invalid"
+    },
+    {
+      "id": "exponent_revision_token",
+      "source": "{\"schema_version\":1,\"type\":\"replace_instrument_patch\",\"project_instance_id\":\"session-a\",\"expected_revision\":0e0,\"patch\":{\"schema_version\":1,\"waveform\":\"saw\",\"gain_db\":-18,\"attack_seconds\":0.05,\"decay_seconds\":0.25,\"sustain_level\":0.5,\"release_seconds\":0.4,\"cutoff_hz\":2400,\"resonance_q\":1.2}}",
+      "expected": "invalid"
+    },
+    {
+      "id": "rounded_fraction_revision_token",
+      "source": "{\"schema_version\":1,\"type\":\"replace_instrument_patch\",\"project_instance_id\":\"session-a\",\"expected_revision\":9007199254740990.5,\"patch\":{\"schema_version\":1,\"waveform\":\"saw\",\"gain_db\":-18,\"attack_seconds\":0.05,\"decay_seconds\":0.25,\"sustain_level\":0.5,\"release_seconds\":0.4,\"cutoff_hz\":2400,\"resonance_q\":1.2}}",
+      "expected": "invalid"
+    },
+    {
+      "id": "decimal_command_version_token",
+      "source": "{\"schema_version\":1.0,\"type\":\"replace_instrument_patch\",\"project_instance_id\":\"session-a\",\"expected_revision\":0,\"patch\":{\"schema_version\":1,\"waveform\":\"saw\",\"gain_db\":-18,\"attack_seconds\":0.05,\"decay_seconds\":0.25,\"sustain_level\":0.5,\"release_seconds\":0.4,\"cutoff_hz\":2400,\"resonance_q\":1.2}}",
+      "expected": "invalid"
+    },
+    {
+      "id": "exponent_command_version_token",
+      "source": "{\"schema_version\":1e0,\"type\":\"replace_instrument_patch\",\"project_instance_id\":\"session-a\",\"expected_revision\":0,\"patch\":{\"schema_version\":1,\"waveform\":\"saw\",\"gain_db\":-18,\"attack_seconds\":0.05,\"decay_seconds\":0.25,\"sustain_level\":0.5,\"release_seconds\":0.4,\"cutoff_hz\":2400,\"resonance_q\":1.2}}",
+      "expected": "invalid"
+    },
+    {
+      "id": "duplicate_expected_revision",
+      "source": "{\"schema_version\":1,\"type\":\"replace_instrument_patch\",\"project_instance_id\":\"session-a\",\"expected_revision\":0,\"patch\":{\"schema_version\":1,\"waveform\":\"saw\",\"gain_db\":-18,\"attack_seconds\":0.05,\"decay_seconds\":0.25,\"sustain_level\":0.5,\"release_seconds\":0.4,\"cutoff_hz\":2400,\"resonance_q\":1.2},\"expected_revision\":1}",
+      "expected": "invalid"
+    },
+    {
+      "id": "duplicate_nested_gain_db",
+      "source": "{\"schema_version\":1,\"type\":\"replace_instrument_patch\",\"project_instance_id\":\"session-a\",\"expected_revision\":0,\"patch\":{\"schema_version\":1,\"waveform\":\"saw\",\"gain_db\":-18,\"attack_seconds\":0.05,\"decay_seconds\":0.25,\"sustain_level\":0.5,\"release_seconds\":0.4,\"cutoff_hz\":2400,\"resonance_q\":1.2,\"gain_db\":-24}}",
+      "expected": "invalid"
+    },
+    {
+      "id": "trailing_command_content",
+      "source": "{\"schema_version\":1,\"type\":\"replace_instrument_patch\",\"project_instance_id\":\"session-a\",\"expected_revision\":0,\"patch\":{\"schema_version\":1,\"waveform\":\"saw\",\"gain_db\":-18,\"attack_seconds\":0.05,\"decay_seconds\":0.25,\"sustain_level\":0.5,\"release_seconds\":0.4,\"cutoff_hz\":2400,\"resonance_q\":1.2}}{}",
+      "expected": "invalid"
+    },
+    {
+      "id": "nul_before_trailing_content",
+      "source": "{\"schema_version\":1,\"type\":\"replace_instrument_patch\",\"project_instance_id\":\"session-a\",\"expected_revision\":0,\"patch\":{\"schema_version\":1,\"waveform\":\"saw\",\"gain_db\":-18,\"attack_seconds\":0.05,\"decay_seconds\":0.25,\"sustain_level\":0.5,\"release_seconds\":0.4,\"cutoff_hz\":2400,\"resonance_q\":1.2}}\u0000{}",
+      "expected": "invalid"
+    }
+  ]
+}

@@ -1,0 +1,219 @@
+{
+  "base": {
+    "schema_version": 1,
+    "type": "replace_instrument_patch",
+    "project_instance_id": "session-a",
+    "expected_revision": 0,
+    "patch": "soft_saw"
+  },
+  "cases": [
+    {
+      "id": "valid_replace",
+      "changes": {},
+      "remove": [],
+      "expected": "valid"
+    },
+    {
+      "id": "largest_revision",
+      "changes": {
+        "expected_revision": 9007199254740991
+      },
+      "remove": [],
+      "expected": "valid"
+    },
+    {
+      "id": "missing_schema_version",
+      "changes": {},
+      "remove": [
+        "schema_version"
+      ],
+      "expected": "invalid"
+    },
+    {
+      "id": "missing_type",
+      "changes": {},
+      "remove": [
+        "type"
+      ],
+      "expected": "invalid"
+    },
+    {
+      "id": "missing_project_instance_id",
+      "changes": {},
+      "remove": [
+        "project_instance_id"
+      ],
+      "expected": "invalid"
+    },
+    {
+      "id": "missing_expected_revision",
+      "changes": {},
+      "remove": [
+        "expected_revision"
+      ],
+      "expected": "invalid"
+    },
+    {
+      "id": "missing_patch",
+      "changes": {},
+      "remove": [
+        "patch"
+      ],
+      "expected": "invalid"
+    },
+    {
+      "id": "future_command_version",
+      "changes": {
+        "schema_version": 2
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "boolean_command_version",
+      "changes": {
+        "schema_version": true
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "unknown_operation",
+      "changes": {
+        "type": "generate_song"
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "empty_project_instance",
+      "changes": {
+        "project_instance_id": ""
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "long_project_instance",
+      "changes": {
+        "project_instance_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "wrong_project_instance_type",
+      "changes": {
+        "project_instance_id": 42
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "negative_revision",
+      "changes": {
+        "expected_revision": -1
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "fractional_revision",
+      "changes": {
+        "expected_revision": 0.5
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "boolean_revision",
+      "changes": {
+        "expected_revision": false
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "string_revision",
+      "changes": {
+        "expected_revision": "0"
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "unsafe_revision",
+      "changes": {
+        "expected_revision": 9007199254740992
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "unknown_command_field",
+      "changes": {
+        "force": true
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "invalid_nested_patch",
+      "changes": {
+        "patch": {
+          "schema_version": 1,
+          "waveform": "saw",
+          "gain_db": 2,
+          "attack_seconds": 0.05,
+          "decay_seconds": 0.25,
+          "sustain_level": 0.5,
+          "release_seconds": 0.4,
+          "cutoff_hz": 2400,
+          "resonance_q": 1.2
+        }
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "patch_is_null",
+      "changes": {
+        "patch": null
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "longest_project_instance",
+      "changes": {
+        "project_instance_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "remove": [],
+      "expected": "valid"
+    },
+    {
+      "id": "whitespace_project_instance",
+      "changes": {
+        "project_instance_id": "session a"
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "non_ascii_project_instance",
+      "changes": {
+        "project_instance_id": "session-é"
+      },
+      "remove": [],
+      "expected": "invalid"
+    },
+    {
+      "id": "trailing_newline_project_instance",
+      "changes": {
+        "project_instance_id": "session-a\n"
+      },
+      "remove": [],
+      "expected": "invalid"
+    }
+  ]
+}
