@@ -48,6 +48,10 @@ public:
     std::span<const InstrumentPatch> undoHistory() const noexcept { return undoPatches; }
     std::span<const InstrumentPatch> redoHistory() const noexcept { return redoPatches; }
 
+    // Commit a prepared non-patch context change on the editing thread.
+    // Advance revision only; preserve token, patch and both patch-history stacks.
+    Result<EditOutcome> advanceContext();
+
     Result<EditOutcome> apply(const ProjectCommand& command);
     Result<EditOutcome> undo();
     Result<EditOutcome> redo();
