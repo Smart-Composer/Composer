@@ -48,6 +48,7 @@ Archive digests (SHA-256):
 These notes record what the pinned sources declare. They are not a legal review, and the
 distribution obligations they imply remain to be confirmed before the first release.
 
+- Composer's own code is licensed under the AGPL-3.0-or-later; see [LICENSE](../LICENSE).
 - JUCE's modules are dual-licensed; Composer uses them under the AGPL-3.0.
 - Tracktion Engine is dual-licensed; Composer uses it under the GPL-3.0-or-later. Section 13 of
   the GPL-3.0 and of the AGPL-3.0 permits combining the two in one work, each part keeping its
