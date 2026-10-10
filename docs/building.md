@@ -69,9 +69,11 @@ The instrument is described in [instrument.md](instrument.md). The build never i
 plugin. To try it in another host, copy the whole `Composer Instrument.vst3` folder into that
 host's VST3 search path, for example `C:\Program Files\Common Files\VST3`.
 
+The application's first recording workflow is described in [recording-session.md](recording-session.md).
+
 ## Tests
 
-CTest runs six groups:
+CTest covers these areas:
 
 - **Contracts**: the versioned instrument patch and project command formats, independent of
   JUCE. They decode, validate and re-encode the shared fixtures in `tests/contracts/fixtures`.
@@ -99,9 +101,18 @@ CTest runs six groups:
     plug-in's MIDI mapping; its output must match the processor bit for bit.
 
   The sequencing engine renders a MIDI clip offline without opening any audio device.
-- **Application**: the built `Composer.exe` starts with `--startup-check`, which creates the
-  sequencing engine without devices, creates an edit, runs the instrument for one block and
-  exits with a non-zero code if any step fails.
+- **Application**: project ownership, patch edits, transport and derived playback preserve the
+  document and reject obsolete operations. The built `Composer.exe` starts with `--startup-check`,
+  which creates the sequencing engine without devices, constructs the recording workspace and
+  its single-track project, runs the instrument for one block and exits with a non-zero code if
+  its checks fail.
+- **Recording**: clock calibration, original MIDI capture, interrupted takes, completion timing
+  and device restoration. Separate executables substitute process-local synthetic WinMM inputs
+  while exercising JUCE's input lifecycle and the recording controller. A one-minute workflow
+  preserves 540 messages, checks one monitoring delivery per message, restores the selected input
+  settings and compares playback after saving and reopening the project in a fresh engine.
+  These tests use synthetic devices and hosted audio time; they do not measure physical-driver
+  latency or sustained real-time performance.
 
 In Debug builds, any failed JUCE or Tracktion Engine assertion, including a leak report at
 shutdown, fails the test executable that raised it. The VST3 module carries its own copy of JUCE,
@@ -124,6 +135,7 @@ python tests/contracts/test_fixture_consistency.py
 |---|---|
 | `include/composer/` | Public headers of Composer's libraries |
 | `src/contracts/` | The versioned patch and command contracts, independent of JUCE |
+| `src/project/` | Project documents, MIDI capture, session commands and checked file storage |
 | `src/instrument/` | The instrument processor shared by the application and the plugin |
 | `src/instrument/synth/` | The synthesiser core, independent of JUCE |
 | `src/engine/` | The JUCE and Tracktion Engine library behind the application, and engine setup |
