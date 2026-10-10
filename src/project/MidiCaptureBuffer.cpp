@@ -122,7 +122,7 @@ CaptureSubmitResult MidiCaptureBuffer::submit(
     return CaptureSubmitResult::accepted;
 }
 
-std::optional<CapturedMidi> MidiCaptureBuffer::finish()
+std::optional<CapturedMidi> MidiCaptureBuffer::finish(CaptureFinishOrder order)
 {
     if (!hasTake_)
         return std::nullopt;
@@ -147,9 +147,10 @@ std::optional<CapturedMidi> MidiCaptureBuffer::finish()
                                   { slot.bytes.begin(), slot.bytes.begin() + slot.size } });
     }
 
-    std::stable_sort(result.events.begin(), result.events.end(),
-                     [](const MidiEvent& left, const MidiEvent& right)
-                     { return left.timeSeconds < right.timeSeconds; });
+    if (order == CaptureFinishOrder::chronological)
+        std::stable_sort(result.events.begin(), result.events.end(),
+                         [](const MidiEvent& left, const MidiEvent& right)
+                         { return left.timeSeconds < right.timeSeconds; });
     hasTake_ = false;
     return result;
 }

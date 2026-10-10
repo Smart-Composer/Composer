@@ -71,6 +71,79 @@ TEST_CASE("MIDI capture preserves every channel message and equal-time order", "
     REQUIRE(result->events == expected);
 }
 
+TEST_CASE("MIDI capture can return arrival order without altering mapped timestamps", "[project][capture]")
+{
+    const std::vector<MidiEvent> messages {
+        { 0.25, { 0x80, 60, 64 } },
+        { 0.2496, { 0x90, 60, 90 } },
+        { 0.125, { 0xc3, 17 } },
+        { 0.25, { 0xd4, 55 } }
+    };
+    MidiCaptureBuffer capture(messages.size());
+    REQUIRE(capture.start() == CaptureStartResult::started);
+    for (const auto& event : messages)
+        REQUIRE(capture.submit(event.timeSeconds, event.bytes) == CaptureSubmitResult::accepted);
+    const auto result = capture.finish(CaptureFinishOrder::arrival);
+    REQUIRE(result.has_value());
+    REQUIRE(result->isComplete());
+    CHECK(result->events == messages);
+    REQUIRE_FALSE(capture.finish(CaptureFinishOrder::arrival).has_value());
+
+    REQUIRE(capture.start() == CaptureStartResult::started);
+    for (const auto& event : messages)
+        REQUIRE(capture.submit(event.timeSeconds, event.bytes) == CaptureSubmitResult::accepted);
+    auto chronological = messages;
+    std::stable_sort(chronological.begin(), chronological.end(),
+        [](const auto& left, const auto& right) { return left.timeSeconds < right.timeSeconds; });
+    CHECK(capture.finish()->events == chronological);
+}
+
+TEST_CASE("Concurrent arrival capture preserves each producer's reservation order", "[project][capture]")
+{
+    constexpr std::size_t producerCount = 4;
+    constexpr int eventsPerProducer = 64;
+    MidiCaptureBuffer capture(producerCount * eventsPerProducer + 2);
+    REQUIRE(capture.start() == CaptureStartResult::started);
+    const std::array<std::uint8_t, 3> first {0x90, 126, 97}, last {0x80, 126, 37};
+    REQUIRE(capture.submit(2.0, first) == CaptureSubmitResult::accepted);
+    std::barrier launch(static_cast<std::ptrdiff_t>(producerCount + 1));
+    std::atomic<unsigned> accepted{0};
+    std::array<std::thread, producerCount> producers;
+    for (std::size_t producer = 0; producer < producerCount; ++producer)
+        producers[producer] = std::thread([&, producer] {
+            launch.arrive_and_wait();
+            for (int index = 0; index < eventsPerProducer; ++index)
+            {
+                const std::array<std::uint8_t, 3> bytes {
+                    static_cast<std::uint8_t>(0x90 | producer), static_cast<std::uint8_t>(index), 91};
+                if (capture.submit(1.0 - static_cast<double>(index) / 128.0, bytes) == CaptureSubmitResult::accepted)
+                    accepted.fetch_add(1);
+            }
+        });
+    launch.arrive_and_wait();
+    for (auto& producer : producers) producer.join();
+    REQUIRE(capture.submit(0.0, last) == CaptureSubmitResult::accepted);
+    const auto take = capture.finish(CaptureFinishOrder::arrival);
+    REQUIRE(take.has_value());
+    REQUIRE(take->isComplete());
+    REQUIRE(take->events.size() == producerCount * eventsPerProducer + 2);
+    CHECK(accepted.load() == producerCount * eventsPerProducer);
+    CHECK(take->events.front() == MidiEvent{2.0, {first.begin(), first.end()}});
+    CHECK(take->events.back() == MidiEvent{0.0, {last.begin(), last.end()}});
+    std::array<int, producerCount> counts{};
+    for (std::size_t index = 1; index + 1 < take->events.size(); ++index)
+    {
+        const auto& event = take->events[index];
+        const auto producer = static_cast<std::size_t>(event.bytes[0] & 0x0f);
+        REQUIRE(producer < counts.size());
+        REQUIRE(counts[producer] < eventsPerProducer);
+        const auto expectedIndex = counts[producer]++;
+        CHECK(event.bytes[1] == static_cast<std::uint8_t>(expectedIndex));
+        CHECK(event.timeSeconds == 1.0 - static_cast<double>(expectedIndex) / 128.0);
+    }
+    for (auto count : counts) CHECK(count == eventsPerProducer);
+}
+
 TEST_CASE("MIDI capture exposes rejected input without consuming event capacity", "[project][capture]")
 {
     MidiCaptureBuffer capture(1);

@@ -28,6 +28,8 @@ enum class CaptureSubmitResult
     overflow
 };
 
+enum class CaptureFinishOrder { chronological, arrival };
+
 struct CapturedMidi
 {
     std::vector<MidiEvent> events;
@@ -72,9 +74,11 @@ public:
 
     // Returns nullopt if inactive. Stops accepting this take, waits for its
     // admitted writers, then allocates the result off the callback thread.
-    // Equal timestamps retain accepted submission order. Allocation failure
-    // leaves the stopped take available for another finish() attempt.
-    std::optional<CapturedMidi> finish();
+    // Chronological order is the default; equal timestamps retain accepted
+    // submission order. Arrival order preserves slot reservation order, including
+    // when producers overlap. Allocation failure leaves the stopped take
+    // available for another finish() attempt, in either order.
+    std::optional<CapturedMidi> finish(CaptureFinishOrder = CaptureFinishOrder::chronological);
 
 private:
     struct Slot;
