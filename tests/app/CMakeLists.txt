@@ -5,3 +5,9 @@ composer_add_test_executable(composer_app_instrument_tests
 composer_link_app_instrument(composer_app_instrument_tests)
 target_include_directories(composer_app_instrument_tests
     PRIVATE "${PROJECT_SOURCE_DIR}/tests/support")
+
+composer_add_test_executable(composer_application_project_tests
+    SOURCES
+        ApplicationProjectTests.cpp
+        DerivedPlaybackTests.cpp)
+composer_link_application_project(composer_application_project_tests)
