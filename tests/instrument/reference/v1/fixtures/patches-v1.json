@@ -1,0 +1,57 @@
+{
+  "default": {
+    "attack_seconds": 0.01,
+    "cutoff_hz": 8000.0,
+    "decay_seconds": 0.1,
+    "gain_db": -12.0,
+    "release_seconds": 0.2,
+    "resonance_q": 0.7071067811865476,
+    "schema_version": 1,
+    "sustain_level": 0.7,
+    "waveform": "sine"
+  },
+  "lower_bounds": {
+    "attack_seconds": 0.0,
+    "cutoff_hz": 20.0,
+    "decay_seconds": 0.0,
+    "gain_db": -60.0,
+    "release_seconds": 0.0,
+    "resonance_q": 0.1,
+    "schema_version": 1,
+    "sustain_level": 0.0,
+    "waveform": "saw"
+  },
+  "upper_bounds": {
+    "attack_seconds": 10.0,
+    "cutoff_hz": 20000.0,
+    "decay_seconds": 10.0,
+    "gain_db": 0.0,
+    "release_seconds": 10.0,
+    "resonance_q": 10.0,
+    "schema_version": 1,
+    "sustain_level": 1.0,
+    "waveform": "square"
+  },
+  "soft_saw": {
+    "attack_seconds": 0.05,
+    "cutoff_hz": 2400.0,
+    "decay_seconds": 0.25,
+    "gain_db": -18.0,
+    "release_seconds": 0.4,
+    "resonance_q": 1.2,
+    "schema_version": 1,
+    "sustain_level": 0.5,
+    "waveform": "saw"
+  },
+  "awkward": {
+    "attack_seconds": 0.012345678901234567,
+    "cutoff_hz": 1234.5678901234567,
+    "decay_seconds": 1.2345678901234567,
+    "gain_db": -7.123456789012345,
+    "release_seconds": 0.7777777777777777,
+    "resonance_q": 3.3333333333333335,
+    "schema_version": 1,
+    "sustain_level": 0.3333333333333333,
+    "waveform": "saw"
+  }
+}

@@ -1,6 +1,7 @@
 #include "HostedPluginState.h"
 #include "PatchFixtures.h"
 #include "RenderHarness.h"
+#include "Vst3ReservedParameterIds.h"
 
 #include <composer/instrument/InstrumentProcessor.h>
 #include <composer/instrument/synth/ParameterCurves.h>
@@ -122,12 +123,62 @@ TEST_CASE("The hosted VST3 exposes every patch parameter under its persistent id
             CHECK(parameter->getNumSteps() == 3);
 
         CHECK(ids.insert(vst3Id).second);
-        CHECK(vst3Id != 0x70727374u);
-        CHECK(vst3Id != 0x62797073u);
-        CHECK_FALSE((vst3Id >= 0x6d636d00u && vst3Id < 0x6d636d00u + 2080u));
+        CHECK_FALSE(vst3::isReservedParameterId(vst3Id));
     }
 
     CHECK(hosted->getBypassParameter() != nullptr);
+}
+
+TEST_CASE("The VST3 wrapper's own parameters use the IDs the patch parameters avoid")
+{
+    auto hosted = instantiateBuiltPlugin(48000.0, 128);
+    std::set<std::uint32_t> patchIds;
+
+    for (std::size_t index = 0; index < synth::parameterCount; ++index)
+        patchIds.insert(vst3IdOf(index));
+
+    // Every parameter is a patch parameter, the bypass, or a MIDI controller in the reserved range.
+    int bypassParameters = 0;
+    std::uint32_t controllerParameters = 0;
+
+    for (auto* parameter : hosted->getParameters())
+    {
+        const auto* withId = dynamic_cast<const juce::HostedAudioProcessorParameter*>(parameter);
+        REQUIRE(withId != nullptr);
+        const auto id = static_cast<std::uint32_t>(withId->getParameterID().getLargeIntValue());
+        INFO(withId->getParameterID() << " named " << parameter->getName(100));
+
+        if (patchIds.contains(id))
+            continue;
+
+        if (id == vst3::bypassParameterId)
+        {
+            ++bypassParameters;
+            CHECK(parameter == hosted->getBypassParameter());
+            continue;
+        }
+
+        CHECK(vst3::isReservedParameterId(id));
+        CHECK(id != vst3::presetParameterId);
+        ++controllerParameters;
+    }
+
+    CHECK(bypassParameters == 1);
+    CHECK(controllerParameters == vst3::midiControllerParameterCount);
+
+    // Controller parameters are numbered by channel, then controller, from the first channel's
+    // bank select to the last channel's pitch bend.
+    for (const auto& [channelIndex, controller] : { std::pair { 0u, 0u }, std::pair { 0u, 120u }, std::pair { 0u, 123u },
+                                                    std::pair { 15u, 123u }, std::pair { 15u, 129u } })
+    {
+        INFO("channel index " << channelIndex << " controller " << controller);
+        const auto* parameter = hostedParameter(*hosted, vst3::midiControllerParameterId(channelIndex, controller));
+        REQUIRE(parameter != nullptr);
+        CHECK(parameter->getName(100) == "MIDI CC " + juce::String(channelIndex) + "|" + juce::String(controller));
+    }
+
+    // With a single program the wrapper adds no program parameter.
+    CHECK(hostedParameter(*hosted, vst3::presetParameterId) == nullptr);
 }
 
 TEST_CASE("A host restores the instrument's state exactly")

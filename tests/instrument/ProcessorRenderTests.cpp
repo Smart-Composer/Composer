@@ -1,4 +1,5 @@
 #include "AllocationProbe.h"
+#include "OperatorNewProbe.h"
 #include "PatchFixtures.h"
 #include "RenderHarness.h"
 
@@ -334,7 +335,7 @@ TEST_CASE("Processor output does not depend on block sizes")
 
             while (nextEvent < script.size() && script[nextEvent].sampleTime < start + length)
             {
-                midi.addEvent(script[nextEvent].bytes.data(), 3, script[nextEvent].sampleTime - start);
+                midi.addEvent(script[nextEvent].bytes.data(), script[nextEvent].size, script[nextEvent].sampleTime - start);
                 ++nextEvent;
             }
 
@@ -358,9 +359,9 @@ TEST_CASE("Processor output does not depend on block sizes")
 
 TEST_CASE("Processing never allocates or frees memory")
 {
-    if (! AllocationProbe::available())
-        SKIP("Allocation counting needs the debug C runtime.");
-
+    // Every build counts calls to operator new and delete. Only Debug builds count malloc, realloc
+    // and free, through the debug C runtime; JUCE's HeapBlock, behind AudioBuffer and MidiBuffer
+    // storage, allocates with malloc, so a Release run alone does not cover it.
     InstrumentProcessor processor;
     prepare(processor, 48000.0, 256, loadPatchFixtures().back().second);
 
@@ -371,6 +372,7 @@ TEST_CASE("Processing never allocates or frees memory")
     sysex.front() = 0xF0;
     sysex.back() = 0xF7;
     long allocations = 0;
+    long operatorNewCalls = 0;
     std::mt19937 random(11u);
 
     for (int block = 0; block < 500; ++block)
@@ -393,9 +395,11 @@ TEST_CASE("Processing never allocates or frees memory")
             midi.addEvent(sysex.data(), static_cast<int>(sysex.size()), 64);
         }
 
+        OperatorNewProbe::arm();
         AllocationProbe::arm();
         processor.processBlock(buffer, midi);
         allocations += AllocationProbe::disarm();
+        operatorNewCalls += OperatorNewProbe::disarm();
 
         // Between blocks, unmeasured: host automation, patch changes, panic and re-preparation.
         processor.getParameters()[static_cast<int>(random() % 8)]->setValue(static_cast<float>(random() % 1000) / 999.0f);
@@ -413,7 +417,12 @@ TEST_CASE("Processing never allocates or frees memory")
         }
     }
 
-    CHECK(allocations == 0);
+    CHECK(operatorNewCalls == 0);
+
+    if (AllocationProbe::available())
+        CHECK(allocations == 0);
+    else
+        WARN("This build counts operator new and delete only; the Debug build also counts malloc.");
 }
 
 TEST_CASE("Concurrent patch changes, automation, panic and restores keep output sound")

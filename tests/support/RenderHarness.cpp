@@ -24,6 +24,16 @@ ScriptEvent controller(int sampleTime, int number, int value, int channel)
                            static_cast<std::uint8_t>(value) } };
 }
 
+ScriptEvent programChange(int sampleTime, int program, int channel)
+{
+    return { sampleTime, { static_cast<std::uint8_t>(0xC0 | (channel - 1)), static_cast<std::uint8_t>(program), 0 }, 2 };
+}
+
+ScriptEvent channelPressure(int sampleTime, int pressure, int channel)
+{
+    return { sampleTime, { static_cast<std::uint8_t>(0xD0 | (channel - 1)), static_cast<std::uint8_t>(pressure), 0 }, 2 };
+}
+
 MidiScript standardScript(double sampleRate)
 {
     const auto at = [sampleRate](double seconds) { return static_cast<int>(std::lround(seconds * sampleRate)); };
@@ -82,7 +92,7 @@ juce::AudioBuffer<float> renderScript(juce::AudioProcessor& processor,
         while (nextEvent < script.size() && script[nextEvent].sampleTime < start + length)
         {
             const auto& event = script[nextEvent++];
-            midi.addEvent(event.bytes.data(), 3, event.sampleTime - start);
+            midi.addEvent(event.bytes.data(), event.size, event.sampleTime - start);
         }
 
         if (beforeBlock)
