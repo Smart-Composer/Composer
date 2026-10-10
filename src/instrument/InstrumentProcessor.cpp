@@ -205,7 +205,8 @@ void InstrumentProcessor::setCurrentProgram(int)
 
 const juce::String InstrumentProcessor::getProgramName(int)
 {
-    return {};
+    // Hosts list the single program by name; VST3 validation requires one.
+    return "Default";
 }
 
 void InstrumentProcessor::changeProgramName(int, const juce::String&)

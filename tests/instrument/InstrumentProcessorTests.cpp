@@ -105,3 +105,11 @@ TEST_CASE("The instrument writes every output sample across sample-rate changes"
         processor.releaseResources();
     }
 }
+
+TEST_CASE("The instrument offers one named program")
+{
+    InstrumentProcessor processor;
+    CHECK(processor.getNumPrograms() == 1);
+    CHECK(processor.getCurrentProgram() == 0);
+    CHECK(processor.getProgramName(0) == "Default");
+}

@@ -172,10 +172,11 @@ TEST_CASE("The in-process processor and the VST3 render the same patch bit for b
             const auto b = renderScript(*hosted, script, total, block);
 
             const auto difference = firstBitDifference(a, b);
-            CHECK_FALSE(difference.has_value());
 
-            if (difference)
-                UNSCOPED_INFO("first difference at flattened sample " << *difference);
+            {
+                INFO("first difference at flattened sample " << difference.value_or(0));
+                CHECK_FALSE(difference.has_value());
+            }
 
             CHECK(allFinite(a));
 
@@ -311,6 +312,34 @@ TEST_CASE("The stop controllers and a host reset reach the VST3")
     });
     CHECK(peak(reset, 0, 256 * 4) > 0.01f);
     CHECK(silentFrom(reset, 256 * 4));
+}
+
+TEST_CASE("The VST3 prepared again at a new sample rate renders like a fresh instance")
+{
+    const auto patch = awkwardPatch();
+    auto hosted = instantiateBuiltPlugin(48000.0, 128);
+    loadHostedPatch(*hosted, patch);
+    hosted->setRateAndBufferSizeDetails(48000.0, 128);
+    hosted->prepareToPlay(48000.0, 128);
+    renderScript(*hosted, standardScript(48000.0), 48000, 128);
+
+    hosted->releaseResources();
+    hosted->setRateAndBufferSizeDetails(96000.0, 256);
+    hosted->prepareToPlay(96000.0, 256);
+
+    auto fresh = instantiateBuiltPlugin(96000.0, 256);
+    loadHostedPatch(*fresh, patch);
+    InstrumentProcessor local;
+    REQUIRE_FALSE(local.applyPatch(patch).has_value());
+    prepareBoth(*fresh, local, 96000.0, 256);
+
+    const auto script = standardScript(96000.0);
+    const int total = static_cast<int>(2.5 * 96000.0);
+    const auto again = renderScript(*hosted, script, total, 256);
+
+    CHECK(peak(again) > 0.01f);
+    CHECK_FALSE(firstBitDifference(again, renderScript(*fresh, script, total, 256)).has_value());
+    CHECK_FALSE(firstBitDifference(again, renderScript(local, script, total, 256)).has_value());
 }
 
 TEST_CASE("A note released in the VST3 ends in its release time")
