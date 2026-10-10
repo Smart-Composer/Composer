@@ -7,10 +7,12 @@ include_guard(GLOBAL)
 
 include(FetchContent)
 
-# JUCE 9.0.3 (release tag). AGPL-3.0-only for open-source use.
+# JUCE 9.0.3 (release tag). AGPL-3.0-only for open-source use. PatchJuce.cmake applies Composer's
+# repairs to it.
 FetchContent_Declare(juce
     URL https://github.com/juce-framework/JUCE/archive/be29c81492b6151c8ea8d14c840e1311963b3a83.tar.gz
     URL_HASH SHA256=f846e74503e5b959b1de514c772b05ab1cb05478b7513b19d6294cb2b3d2906a
+    PATCH_COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_LIST_DIR}/PatchJuce.cmake"
     SYSTEM
     EXCLUDE_FROM_ALL)
 

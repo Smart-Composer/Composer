@@ -3,7 +3,9 @@
 Composer fetches every third-party library at configure time from a pinned source archive,
 either a GitHub archive of an exact commit or a release asset, and verifies the archive's
 SHA-256. The pins live in [`cmake/ComposerDependencies.cmake`](../cmake/ComposerDependencies.cmake).
-Nothing is vendored in this repository, and no binary is downloaded.
+Nothing is vendored in this repository, and no binary is downloaded. Composer's repairs to a
+pinned source, listed under [Repairs to pinned sources](#repairs-to-pinned-sources), are applied
+when it is fetched.
 
 | Library | Version | Upstream commit | Licence used | Role |
 |---|---|---|---|---|
@@ -58,6 +60,24 @@ Archive digests (SHA-256):
   answered correctly. Steinberg's validator probes controller 130 and reports the answer as
   information, not as a failure.
 
+## Repairs to pinned sources
+
+[`cmake/PatchJuce.cmake`](../cmake/PatchJuce.cmake) runs in the extracted JUCE sources after the
+archive is verified. Each file it repairs must match the pinned original's SHA-256, or already be
+repaired; anything else stops the configure, so a new pin cannot silently drop or misapply a
+repair.
+
+- `juce_audio_devices/native/juce_Midi_windows.cpp`: when `midiInOpen` or `midiInStart` fails,
+  for example because another application holds the input, the half-opened input is destroyed
+  before its buffer thread starts, and its destructor joins that thread unconditionally. The join
+  throws inside the destructor and the process terminates. The repair joins only a started
+  thread, as the same file already does for its device watcher thread, so the open reports
+  failure. JUCE's development branch still has the unconditional join as of 2026-10-06. The
+  `composer_midi_input_tests` executable reproduces both failures without hardware.
+
+When moving the JUCE pin, check each repair against the new revision, and remove those upstream
+has fixed.
+
 ## Licence notes
 
 These notes record what the pinned sources declare. They are not a legal review, and the
@@ -103,6 +123,7 @@ distribution obligations they imply remain to be confirmed before the first rele
 1. Pick the new upstream commit or release asset and download its archive from the same URL
    pattern.
 2. Replace the URL and the SHA-256 together in `cmake/ComposerDependencies.cmake` and in the
-   tables above, and record why the revision changed.
+   tables above, and record why the revision changed. For JUCE, also carry each repair in
+   `cmake/PatchJuce.cmake` over to the new revision, with its new hashes, or remove it.
 3. Run `scripts/verify.ps1 -Clean` for Release and Debug, and let the hosted checks pass, before
    anything depends on the new revision.

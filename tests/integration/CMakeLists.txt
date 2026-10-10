@@ -64,3 +64,8 @@ add_test(NAME "The Composer application starts and runs its startup check"
     COMMAND Composer --startup-check)
 set_tests_properties("The Composer application starts and runs its startup check"
     PROPERTIES TIMEOUT 120)
+
+# Its own executable, because it redirects the process's winmm functions; see the source.
+composer_add_test_executable(composer_midi_input_tests
+    SOURCES
+        MidiInputOpenFailureTests.cpp)
