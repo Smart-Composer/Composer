@@ -11,11 +11,14 @@
 namespace composer::tests
 {
 
-/** A three-byte MIDI message at an absolute sample time. */
+/** A MIDI message of up to three bytes at an absolute sample time. size records the message's
+    length, which is also the length JUCE derives from its status byte; the bytes after it stay
+    zero. */
 struct ScriptEvent
 {
     int sampleTime = 0;
     std::array<std::uint8_t, 3> bytes {};
+    int size = 3;
 };
 
 using MidiScript = std::vector<ScriptEvent>;
@@ -23,6 +26,10 @@ using MidiScript = std::vector<ScriptEvent>;
 ScriptEvent noteOn(int sampleTime, int note, int velocity, int channel = 1);
 ScriptEvent noteOff(int sampleTime, int note, int channel = 1);
 ScriptEvent controller(int sampleTime, int number, int value, int channel = 1);
+
+/** Two-byte messages. */
+ScriptEvent programChange(int sampleTime, int program, int channel = 1);
+ScriptEvent channelPressure(int sampleTime, int pressure, int channel = 1);
 
 /** A two-and-a-half-second performance: several velocities and two channels, overlapping notes,
     a retrigger, a chord large enough to steal voices, releases, all-notes-off on the first

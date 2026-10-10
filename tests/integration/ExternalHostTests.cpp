@@ -53,10 +53,17 @@ juce::AudioBuffer<float> renderInSdkHost(const contracts::InstrumentPatch& patch
     const auto encoded = std::get<std::string>(contracts::encodePatch(patch));
     REQUIRE(state.replaceWithData(encoded.data(), encoded.size()));
 
+    // The render host reads three bytes for every event; a shorter message is written with zeros
+    // after its last byte.
     juce::String lines;
     for (const auto& event : script)
-        lines << event.sampleTime << ' ' << static_cast<int>(event.bytes[0]) << ' ' << static_cast<int>(event.bytes[1]) << ' '
-              << static_cast<int>(event.bytes[2]) << '\n';
+    {
+        const auto byte = [&event](int index) {
+            return index < event.size ? static_cast<int>(event.bytes[static_cast<std::size_t>(index)]) : 0;
+        };
+
+        lines << event.sampleTime << ' ' << byte(0) << ' ' << byte(1) << ' ' << byte(2) << '\n';
+    }
     REQUIRE(events.replaceWithText(lines));
 
     juce::ChildProcess host;

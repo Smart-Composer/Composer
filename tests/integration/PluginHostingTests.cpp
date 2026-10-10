@@ -67,6 +67,23 @@ TEST_CASE("Scanning the built VST3 bundle finds the Composer instrument")
     CHECK(juce::File(description->fileOrIdentifier) == bundle);
 }
 
+TEST_CASE("The built VST3 keeps the class identity that saved host sessions refer to")
+{
+    // A host session names the plug-in by its VST3 component class ID, which JUCE builds from the
+    // plug-in's manufacturer code Cmps and plug-in code Cins. The bundle's module information lists it.
+    const auto moduleInfo = builtPluginBundle().getChildFile("Contents/Resources/moduleinfo.json");
+    REQUIRE(moduleInfo.existsAsFile());
+    const auto compact = moduleInfo.loadFileAsString().removeCharacters(" \t\r\n");
+    INFO(compact);
+    CHECK(compact.contains("\"CID\":\"ABCDEF019182FAEB436D707343696E73\",\"Category\":\"AudioModuleClass\""));
+
+    // JUCE hosts, Composer among them, store these two numbers, which JUCE derives from that class ID.
+    juce::VST3PluginFormat format;
+    const auto description = describeBuiltPlugin(format);
+    CHECK(description->uniqueId == -1139663382);
+    CHECK(description->deprecatedUid == 1486818914);
+}
+
 TEST_CASE("A JUCE host instantiates the built VST3 and processes MIDI blocks")
 {
     juce::VST3PluginFormat format;

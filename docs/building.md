@@ -85,14 +85,26 @@ CTest runs six groups:
   scenarios, and output that is identical whatever the block sizes or denormal mode.
 - **Instrument**: the processor shared by the application and the plugin: host parameters and
   their notification, exact patch application, state, panic, the stop controllers, bypass,
-  block-size independence and, in Debug builds, that processing never allocates. Output buffers
-  start filled with NaN, so a sample the processor fails to write fails the test.
+  block-size independence, and that processing never calls operator new or delete (in Debug
+  builds, never allocates through the C runtime either). Output buffers start filled with NaN,
+  so a sample the processor fails to write fails the test. A frozen copy of the first version of
+  the instrument, with patches it saved, is compiled into the same test from
+  `tests/instrument/reference/v1`. Each saved patch must render bit for bit the same through it
+  and through the current instrument, with host automation, bypass, patch changes, state
+  restores, a reset and a second prepare, at four sample rates. The two synthesiser cores'
+  double-precision voice and filter state must also match after every sample. These comparisons
+  cover the inputs they use; the reference's README describes what they cannot see. Every v1
+  host parameter keeps its place, identity, steps and displayed text, recorded in a snapshot
+  that must describe the frozen copy exactly; its host values, text parsing and normalisation
+  curves must match the frozen copy over a dense grid of settings; and no VST3 parameter ID may
+  collide with those the plugin framework reserves.
 - **Integration**: the VST3 bundle built in the same configuration, in three hosts.
   - A JUCE host: the VST3 must render every fixture patch bit for bit like the processor compiled
     into the test after a state restore, through a performance that includes all-notes-off and
     all-sound-off. Host automation is compared bit for bit for one patch; a VST3 prepared again
     at a new sample rate must match a fresh one; the stop controllers, a host reset and bypass
-    are checked on the VST3 alone.
+    are checked on the VST3 alone. The VST3 must keep its component class ID, and the wrapper's
+    own bypass and MIDI controller parameters must use the IDs the patch parameters avoid.
   - Steinberg's validator runs its extensive suite on the bundle.
   - A render host built on the VST 3 SDK's own hosting library, not on JUCE, plays the same
     performance through the VST3, sending controllers as a VST3 host does, through the

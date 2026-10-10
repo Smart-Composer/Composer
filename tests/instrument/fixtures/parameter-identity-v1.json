@@ -1,0 +1,188 @@
+{
+  "parameters": [
+    {
+      "index": 0,
+      "id": "waveform",
+      "vst3_id": 604207933,
+      "name": "Waveform",
+      "label": "",
+      "version_hint": 1,
+      "group": "",
+      "category": 0,
+      "meta": false,
+      "default_normalised": 0.0,
+      "discrete": true,
+      "boolean": false,
+      "steps": 3,
+      "automatable": true,
+      "text": {
+        "0": "Sine",
+        "0.25": "Saw",
+        "0.5": "Saw",
+        "0.75": "Square",
+        "1": "Square"
+      }
+    },
+    {
+      "index": 1,
+      "id": "gain_db",
+      "vst3_id": 1948451134,
+      "name": "Gain",
+      "label": "dB",
+      "version_hint": 1,
+      "group": "",
+      "category": 0,
+      "meta": false,
+      "default_normalised": 0.800000011920929,
+      "discrete": false,
+      "boolean": false,
+      "steps": 2147483647,
+      "automatable": true,
+      "text": {
+        "0": "-60.0",
+        "0.25": "-45.0",
+        "0.5": "-30.0",
+        "0.75": "-15.0",
+        "1": "0.0"
+      }
+    },
+    {
+      "index": 2,
+      "id": "attack_seconds",
+      "vst3_id": 42801032,
+      "name": "Attack",
+      "label": "s",
+      "version_hint": 1,
+      "group": "",
+      "category": 0,
+      "meta": false,
+      "default_normalised": 0.10000000149011612,
+      "discrete": false,
+      "boolean": false,
+      "steps": 2147483647,
+      "automatable": true,
+      "text": {
+        "0": "0.000",
+        "0.25": "0.156",
+        "0.5": "1.250",
+        "0.75": "4.219",
+        "1": "10.000"
+      }
+    },
+    {
+      "index": 3,
+      "id": "decay_seconds",
+      "vst3_id": 1860120314,
+      "name": "Decay",
+      "label": "s",
+      "version_hint": 1,
+      "group": "",
+      "category": 0,
+      "meta": false,
+      "default_normalised": 0.2154434621334076,
+      "discrete": false,
+      "boolean": false,
+      "steps": 2147483647,
+      "automatable": true,
+      "text": {
+        "0": "0.000",
+        "0.25": "0.156",
+        "0.5": "1.250",
+        "0.75": "4.219",
+        "1": "10.000"
+      }
+    },
+    {
+      "index": 4,
+      "id": "sustain_level",
+      "vst3_id": 1770322536,
+      "name": "Sustain",
+      "label": "",
+      "version_hint": 1,
+      "group": "",
+      "category": 0,
+      "meta": false,
+      "default_normalised": 0.699999988079071,
+      "discrete": false,
+      "boolean": false,
+      "steps": 2147483647,
+      "automatable": true,
+      "text": {
+        "0": "0.000",
+        "0.25": "0.250",
+        "0.5": "0.500",
+        "0.75": "0.750",
+        "1": "1.000"
+      }
+    },
+    {
+      "index": 5,
+      "id": "release_seconds",
+      "vst3_id": 1899307591,
+      "name": "Release",
+      "label": "s",
+      "version_hint": 1,
+      "group": "",
+      "category": 0,
+      "meta": false,
+      "default_normalised": 0.2714417576789856,
+      "discrete": false,
+      "boolean": false,
+      "steps": 2147483647,
+      "automatable": true,
+      "text": {
+        "0": "0.000",
+        "0.25": "0.156",
+        "0.5": "1.250",
+        "0.75": "4.219",
+        "1": "10.000"
+      }
+    },
+    {
+      "index": 6,
+      "id": "cutoff_hz",
+      "vst3_id": 199910052,
+      "name": "Cutoff",
+      "label": "Hz",
+      "version_hint": 1,
+      "group": "",
+      "category": 0,
+      "meta": false,
+      "default_normalised": 0.8673533201217651,
+      "discrete": false,
+      "boolean": false,
+      "steps": 2147483647,
+      "automatable": true,
+      "text": {
+        "0": "20",
+        "0.25": "112",
+        "0.5": "632",
+        "0.75": "3557",
+        "1": "20000"
+      }
+    },
+    {
+      "index": 7,
+      "id": "resonance_q",
+      "vst3_id": 987871424,
+      "name": "Resonance",
+      "label": "Q",
+      "version_hint": 1,
+      "group": "",
+      "category": 0,
+      "meta": false,
+      "default_normalised": 0.4247424900531769,
+      "discrete": false,
+      "boolean": false,
+      "steps": 2147483647,
+      "automatable": true,
+      "text": {
+        "0": "0.10",
+        "0.25": "0.32",
+        "0.5": "1.00",
+        "0.75": "3.16",
+        "1": "10.00"
+      }
+    }
+  ]
+}
