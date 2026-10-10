@@ -10,10 +10,12 @@
   `windows-2025-vs2026` image (MSVC 14.51 when this was written).
 - Git.
 - PowerShell 7 (`pwsh`), or Windows PowerShell 5.1.
-- Network access for the first configure, which downloads about 55 MB of pinned sources. See
-  [dependencies.md](dependencies.md).
-- A short checkout path, such as `C:\src\Composer`. The deepest build outputs sit about 180
-  characters below the checkout, and the MSVC tools fail on paths longer than 260 characters.
+- Network access for the first configure, which downloads about 68 MB of pinned sources, 13 MB
+  of them the VST 3 SDK used only by the tests. See [dependencies.md](dependencies.md).
+- A short checkout path of plain ASCII characters, such as `C:\src\Composer`. The deepest build
+  outputs sit about 180 characters below the checkout, and the MSVC tools fail on paths longer
+  than 260 characters. The VST 3 SDK's module loader, used by the validator and the render host,
+  cannot open a plug-in whose path contains other characters.
 
 ## Build and test
 
@@ -45,6 +47,7 @@ cmake --workflow --preset windows-debug
 
 Configuring with a 32-bit compiler stops with an error; Composer builds for x64 only. Both
 configurations share one binary directory, `out/windows`, generated with Ninja Multi-Config.
+The tests need a Ninja generator; with any other, configure with `-DCOMPOSER_BUILD_TESTS=OFF`.
 Compiler warnings in Composer's own sources are errors in these presets.
 
 ## Outputs
@@ -55,6 +58,12 @@ Compiler warnings in Composer's own sources are errors in these presets.
 | Composer Instrument VST3 | `src/plugin/ComposerInstrument_artefacts/<Config>/VST3/Composer Instrument.vst3` |
 
 Both link the C++ runtime statically, so neither needs a Visual C++ redistributable.
+
+When tests are built, `out/windows/v3/bin` also holds Steinberg's `validator.exe` and
+`composer_vst3_render.exe`, built from the pinned VST 3 SDK as a separate, always optimised
+project (`tests/vst3host`). They are test tools and are never shipped. To validate a build by
+hand, run `out\windows\v3\bin\validator.exe -e` with the path of the `Composer Instrument.vst3`
+folder.
 
 The instrument is described in [instrument.md](instrument.md). The build never installs the
 plugin. To try it in another host, copy the whole `Composer Instrument.vst3` folder into that
@@ -78,18 +87,26 @@ CTest runs six groups:
   their notification, exact patch application, state, panic, the stop controllers, bypass,
   block-size independence and, in Debug builds, that processing never allocates. Output buffers
   start filled with NaN, so a sample the processor fails to write fails the test.
-- **Integration**: a JUCE host loads the VST3 bundle built in the same configuration. The VST3
-  must render every fixture patch bit for bit like the processor compiled into the test after a
-  state restore, through a performance that includes all-notes-off and all-sound-off; host
-  automation is compared bit for bit for one patch, and the stop controllers, a host reset and
-  bypass are checked on the VST3 alone. The sequencing engine renders a MIDI clip offline without
-  opening any audio device.
+- **Integration**: the VST3 bundle built in the same configuration, in three hosts.
+  - A JUCE host: the VST3 must render every fixture patch bit for bit like the processor compiled
+    into the test after a state restore, through a performance that includes all-notes-off and
+    all-sound-off. Host automation is compared bit for bit for one patch; a VST3 prepared again
+    at a new sample rate must match a fresh one; the stop controllers, a host reset and bypass
+    are checked on the VST3 alone.
+  - Steinberg's validator runs its extensive suite on the bundle.
+  - A render host built on the VST 3 SDK's own hosting library, not on JUCE, plays the same
+    performance through the VST3, sending controllers as a VST3 host does, through the
+    plug-in's MIDI mapping; its output must match the processor bit for bit.
+
+  The sequencing engine renders a MIDI clip offline without opening any audio device.
 - **Application**: the built `Composer.exe` starts with `--startup-check`, which creates the
   sequencing engine without devices, creates an edit, runs the instrument for one block and
   exits with a non-zero code if any step fails.
 
 In Debug builds, any failed JUCE or Tracktion Engine assertion, including a leak report at
-shutdown, fails the test executable that raised it. Tests write only to temporary directories,
+shutdown, fails the test executable that raised it. The VST3 module carries its own copy of JUCE,
+so an assertion inside it is not seen by the test executables, the validator or the render host;
+those check the plug-in's behaviour instead. Tests write only to temporary directories,
 which they remove.
 
 The hosted workflow also checks the contract fixtures against the published JSON schemas in

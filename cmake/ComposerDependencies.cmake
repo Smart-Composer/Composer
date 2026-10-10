@@ -42,4 +42,44 @@ if(COMPOSER_BUILD_TESTS)
         EXCLUDE_FROM_ALL)
     FetchContent_MakeAvailable(Catch2)
     list(APPEND CMAKE_MODULE_PATH "${catch2_SOURCE_DIR}/extras")
+
+    # Steinberg VST 3 SDK 3.8.0 (tag v3.8.0_build_66), the SDK version JUCE 9.0.3 bundles. MIT.
+    # Test tooling only: Steinberg's validator and a render host on the SDK's hosting library
+    # check the built plug-in in a host other than JUCE. Only the four parts that tooling needs
+    # are fetched, side by side in one directory as the SDK's build expects; tests/vst3host
+    # builds them as a separate project, so none of this is configured here.
+    set(COMPOSER_VST3_SDK_DIR "${FETCHCONTENT_BASE_DIR}/vst3sdk")
+    FetchContent_Declare(vst3_base
+        URL https://github.com/steinbergmedia/vst3_base/archive/3d2e82f8e6bff59c1d8b7a27491a29c2286b5206.tar.gz
+        URL_HASH SHA256=8f1d5f9ac0cd1e916ca3a196f5ee080ec4301b0b10a7ee7e564013f5d58b03cd
+        SOURCE_DIR "${COMPOSER_VST3_SDK_DIR}/base"
+        SOURCE_SUBDIR not-configured-here)
+    FetchContent_Declare(vst3_pluginterfaces
+        URL https://github.com/steinbergmedia/vst3_pluginterfaces/archive/31d6eeba6daaa3e2a8bfbe3e7a90ca0b7fbfbc1c.tar.gz
+        URL_HASH SHA256=7c9d19af0e81711edde34c3eb2e5e6d150ae1f449501bb5b352605b9590654d7
+        SOURCE_DIR "${COMPOSER_VST3_SDK_DIR}/pluginterfaces"
+        SOURCE_SUBDIR not-configured-here)
+    FetchContent_Declare(vst3_public_sdk
+        URL https://github.com/steinbergmedia/vst3_public_sdk/archive/a3911a4615dabbfdfd9d181ee26b05c70c289a95.tar.gz
+        URL_HASH SHA256=4cc8a9a57a970172b1efbef62025ae4f0656e132eed994f0e15ed19dfd9b0bb3
+        SOURCE_DIR "${COMPOSER_VST3_SDK_DIR}/public.sdk"
+        SOURCE_SUBDIR not-configured-here)
+    FetchContent_Declare(vst3_cmake
+        URL https://github.com/steinbergmedia/vst3_cmake/archive/de6e54eeaaab35b7145f5c32c279b5e892146e04.tar.gz
+        URL_HASH SHA256=ab4ce274563570fed11f2f0a31feb93280cd26543703f90c404a8720c1a486a5
+        SOURCE_DIR "${COMPOSER_VST3_SDK_DIR}/cmake"
+        SOURCE_SUBDIR not-configured-here)
+    FetchContent_MakeAvailable(vst3_base vst3_pluginterfaces vst3_public_sdk vst3_cmake)
+
+    # The SDK's build finds its parts only side by side, so a FETCHCONTENT_SOURCE_DIR_VST3_*
+    # override of one part would be ignored; refuse it rather than build from a stale copy.
+    foreach(part IN ITEMS base pluginterfaces public.sdk cmake)
+        string(REPLACE "." "_" name "${part}")
+        get_filename_component(fetched "${vst3_${name}_SOURCE_DIR}" ABSOLUTE)
+        get_filename_component(expected "${COMPOSER_VST3_SDK_DIR}/${part}" ABSOLUTE)
+        if(NOT fetched STREQUAL expected)
+            message(FATAL_ERROR "The VST 3 SDK's ${part} must be fetched into ${COMPOSER_VST3_SDK_DIR}; "
+                "overriding the source of one SDK part is not supported")
+        endif()
+    endforeach()
 endif()
