@@ -1,5 +1,6 @@
 #include <composer/engine/EngineSetup.h>
 #include <composer/instrument/InstrumentProcessor.h>
+#include "RecordingWorkspace.h"
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <tracktion_engine/tracktion_engine.h>
@@ -12,35 +13,21 @@ namespace composer::app
 namespace
 {
 
-class MainComponent final : public juce::Component
-{
-public:
-    MainComponent()
-    {
-        setSize(800, 500);
-    }
-
-    void paint(juce::Graphics& g) override
-    {
-        g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
-        g.setColour(getLookAndFeel().findColour(juce::Label::textColourId));
-        g.setFont(juce::FontOptions(28.0f));
-        g.drawText(JUCE_APPLICATION_NAME_STRING, getLocalBounds(), juce::Justification::centred);
-    }
-};
-
 class MainWindow final : public juce::DocumentWindow
 {
 public:
-    explicit MainWindow(const juce::String& name)
+    MainWindow(const juce::String& name, tracktion::Engine& engine)
         : juce::DocumentWindow(name,
                                juce::Desktop::getInstance().getDefaultLookAndFeel().findColour(
                                    juce::ResizableWindow::backgroundColourId),
                                juce::DocumentWindow::allButtons)
     {
         setUsingNativeTitleBar(true);
-        setContentOwned(new MainComponent(), true);
+        auto workspace = std::make_unique<RecordingWorkspace>(engine);
+        workspace->setSize(1000, 800);
+        setContentOwned(workspace.release(), true);
         setResizable(true, true);
+        setResizeLimits(900, 650, 2400, 1600);
         centreWithSize(getWidth(), getHeight());
         setVisible(true);
     }
@@ -49,10 +36,16 @@ public:
     {
         juce::JUCEApplication::getInstance()->systemRequestedQuit();
     }
+
+    void requestClose(std::function<void()> close)
+    {
+        if (auto* workspace = dynamic_cast<RecordingWorkspace*>(getContentComponent()))
+            workspace->requestClose(std::move(close));
+    }
 };
 
-/** Starts the sequencing engine without devices, creates an edit and runs the shared
-    instrument for one block. Used by automated checks to prove the built application starts. */
+/** Builds the recording workspace without devices and runs the shared instrument
+    for one block. Used by automated checks to prove the built application starts. */
 bool runStartupCheck(const juce::String& applicationName)
 {
     const auto scratch = juce::File::createTempFile("composer-startup-check");
@@ -64,7 +57,8 @@ bool runStartupCheck(const juce::String& applicationName)
 
     {
         auto engine = composer::engine::createHeadlessEngine(applicationName, scratch);
-        auto edit = tracktion::Edit::createSingleTrackEdit(*engine);
+        RecordingWorkspace workspace(*engine);
+        workspace.setSize(1000, 800);
 
         composer::instrument::InstrumentProcessor instrument;
         constexpr int blockSize = 128;
@@ -90,8 +84,9 @@ bool runStartupCheck(const juce::String& applicationName)
             for (int index = 0; index < blockSize; ++index)
                 outputWritten = outputWritten && std::isfinite(buffer.getSample(channel, index));
 
-        passed = edit != nullptr
-              && ! tracktion::getAudioTracks(*edit).isEmpty()
+        const auto edits = engine->getActiveEdits().getEdits();
+        passed = edits.size() == 1
+              && ! tracktion::getAudioTracks(*edits[0]).isEmpty()
               && outputWritten;
     }
 
@@ -127,7 +122,7 @@ public:
         }
 
         engine = composer::engine::createEngine(getApplicationName());
-        mainWindow = std::make_unique<MainWindow>(getApplicationName());
+        mainWindow = std::make_unique<MainWindow>(getApplicationName(), *engine);
     }
 
     void shutdown() override
@@ -138,7 +133,8 @@ public:
 
     void systemRequestedQuit() override
     {
-        quit();
+        if (mainWindow != nullptr) mainWindow->requestClose([] { juce::JUCEApplication::quit(); });
+        else quit();
     }
 
     void anotherInstanceStarted(const juce::String&) override

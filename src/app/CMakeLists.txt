@@ -1,5 +1,6 @@
 include(InstrumentAdapter.cmake)
 include(ApplicationProject.cmake)
+include(RecordingWorkspace.cmake)
 
 juce_add_gui_app(Composer
     PRODUCT_NAME "Composer"
@@ -11,7 +12,7 @@ set(composer_app_sources
 
 target_sources(Composer PRIVATE ${composer_app_sources})
 composer_apply_warnings(Composer ${composer_app_sources})
-composer_link_application_project(Composer)
+composer_link_recording_workspace(Composer)
 
 target_compile_definitions(Composer
     PRIVATE
