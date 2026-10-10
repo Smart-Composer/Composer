@@ -23,11 +23,17 @@ target_sources(ComposerInstrument PRIVATE ${composer_plugin_sources})
 composer_apply_warnings(ComposerInstrument ${composer_plugin_sources})
 composer_link_instrument(ComposerInstrument)
 
+# The parameter-ID settings fix how hosts identify each automatable parameter and how MIDI
+# controllers reach the instrument. They equal JUCE's defaults; they are pinned because changing
+# any of them would remap automation in saved host sessions.
 target_compile_definitions(ComposerInstrument
     PUBLIC
         JUCE_USE_CURL=0
         JUCE_WEB_BROWSER=0
-        JUCE_VST3_CAN_REPLACE_VST2=0)
+        JUCE_VST3_CAN_REPLACE_VST2=0
+        JUCE_FORCE_USE_LEGACY_PARAM_IDS=0
+        JUCE_USE_STUDIO_ONE_COMPATIBLE_PARAMETERS=1
+        JUCE_VST3_EMULATE_MIDI_CC_WITH_PARAMETERS=1)
 
 target_link_libraries(ComposerInstrument
     PRIVATE

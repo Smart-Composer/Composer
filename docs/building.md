@@ -56,24 +56,34 @@ Compiler warnings in Composer's own sources are errors in these presets.
 
 Both link the C++ runtime statically, so neither needs a Visual C++ redistributable.
 
-The instrument loads and accepts MIDI but produces no sound yet; its synth voice is still to
-come. The build never installs the plugin. To try it in another host, copy the whole
-`Composer Instrument.vst3` folder into that host's VST3 search path, for example
-`C:\Program Files\Common Files\VST3`.
+The instrument is described in [instrument.md](instrument.md). The build never installs the
+plugin. To try it in another host, copy the whole `Composer Instrument.vst3` folder into that
+host's VST3 search path, for example `C:\Program Files\Common Files\VST3`.
 
 ## Tests
 
-CTest runs four groups:
+CTest runs six groups:
 
 - **Contracts**: the versioned instrument patch and project command formats, independent of
   JUCE. They decode, validate and re-encode the shared fixtures in `tests/contracts/fixtures`.
-
-- **Instrument**: the shared instrument processor's buses, MIDI handling and sample-rate
-  changes, compiled into a test executable. Output buffers start filled with NaN, so a sample
-  the processor fails to write fails the test.
-- **Integration**: a JUCE host scans and instantiates the VST3 bundle built in the same
-  configuration and plays MIDI through it; the sequencing engine renders a MIDI clip offline
-  without opening any audio device.
+- **Project**: the versioned project document, bounded MIDI capture and checked file storage,
+  with synthetic performances in temporary directories.
+- **Synthesiser core**: the instrument's signal processing, independent of JUCE: parameter
+  curves, band-limiting and aliasing, filter response, envelope timing, smoothing, voice
+  allocation and fades, click limits, patch changes reaching the sound (sustain, cutoff,
+  resonance and release on a playing note, attack and decay on the next one), the order of patch
+  publication and host edits under every interleaving of their steps in several small
+  scenarios, and output that is identical whatever the block sizes or denormal mode.
+- **Instrument**: the processor shared by the application and the plugin: host parameters and
+  their notification, exact patch application, state, panic, the stop controllers, bypass,
+  block-size independence and, in Debug builds, that processing never allocates. Output buffers
+  start filled with NaN, so a sample the processor fails to write fails the test.
+- **Integration**: a JUCE host loads the VST3 bundle built in the same configuration. The VST3
+  must render every fixture patch bit for bit like the processor compiled into the test after a
+  state restore, through a performance that includes all-notes-off and all-sound-off; host
+  automation is compared bit for bit for one patch, and the stop controllers, a host reset and
+  bypass are checked on the VST3 alone. The sequencing engine renders a MIDI clip offline without
+  opening any audio device.
 - **Application**: the built `Composer.exe` starts with `--startup-check`, which creates the
   sequencing engine without devices, creates an edit, runs the instrument for one block and
   exits with a non-zero code if any step fails.
@@ -97,7 +107,8 @@ python tests/contracts/test_fixture_consistency.py
 |---|---|
 | `include/composer/` | Public headers of Composer's libraries |
 | `src/contracts/` | The versioned patch and command contracts, independent of JUCE |
-| `src/instrument/` | The instrument shared by the application and the plugin |
+| `src/instrument/` | The instrument processor shared by the application and the plugin |
+| `src/instrument/synth/` | The synthesiser core, independent of JUCE |
 | `src/engine/` | The JUCE and Tracktion Engine library behind the application, and engine setup |
 | `src/plugin/` | The VST3 wrapper |
 | `src/app/` | The Composer application |
